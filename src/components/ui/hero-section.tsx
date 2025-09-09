@@ -18,7 +18,7 @@ export function HeroSection({
     <Card className="border-none shadow-lg bg-gradient-to-br from-background to-muted">
       <CardContent className="p-12 text-center">
         <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          Hello, I'm {name}
+          Hello, I&apos;m {name}
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
           {description}
