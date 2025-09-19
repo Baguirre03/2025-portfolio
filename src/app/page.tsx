@@ -1,32 +1,58 @@
-import Link from "next/link";
+import Image from "next/image";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-16">
-        {/* Hero Section */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Hello, I&apos;m <span className="">Ben Aguirre</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Welcome to my personal space on the web. I&apos;m passionate about
-            technology, photography, and sharing stories through words and
-            images.
+    <div className="mx-auto max-w-2xl px-6 h-[calc(100vh-80px)] flex flex-col justify-center overflow-hidden gap-5">
+      <div>
+        <h1 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl mb-8">
+          I like building tools that make people&apos;s lives easier
+        </h1>
+
+        <div className="prose prose-lg max-w-none">
+          <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
+            About Me
+          </h2>
+          <h3 className="text-xl font-medium text-foreground mb-3">
+            What I do
+          </h3>
+          <p className="text-muted-foreground leading-relaxed mb-6">
+            I'm a software engineer who enjoys creating web applications and
+            solving interesting problems with code. Currently working with
+            React, TypeScript, and Node.js.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/about"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              Learn More About Me
-            </Link>
-            <Link
-              href="/blog"
-              className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-            >
-              Read My Blog
-            </Link>
+
+          <h3 className="text-xl font-medium text-foreground mb-3">
+            Outside of code
+          </h3>
+          <p className="text-muted-foreground leading-relaxed">
+            When I'm not coding, you'll find me taking photos, reading, or
+            exploring new places. These experiences continuously inform and
+            inspire my work.
+          </p>
+        </div>
+      </div>
+      <div>
+        <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
+          Recent Blog Posts
+        </h2>
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-medium text-foreground hover:text-foreground/80 transition-colors cursor-pointer">
+              Building Better React Components with TypeScript
+            </h3>
+            <div className="w-full h-px bg-muted mt-2"></div>
+          </div>
+          <div>
+            <h3 className="text-lg font-medium text-foreground hover:text-foreground/80 transition-colors cursor-pointer">
+              My Journey into Photography and Code
+            </h3>
+            <div className="w-full h-px bg-muted mt-2"></div>
+          </div>
+          <div>
+            <h3 className="text-lg font-medium text-foreground hover:text-foreground/80 transition-colors cursor-pointer">
+              Why I Choose Simplicity in Design
+            </h3>
+            <div className="w-full h-px bg-muted mt-2"></div>
           </div>
         </div>
       </div>

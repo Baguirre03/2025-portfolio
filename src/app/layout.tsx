@@ -1,8 +1,10 @@
+import type React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-// import Navigation from "./components/Navigation";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Navigation } from "@/components/navigation";
+import { Suspense } from "react";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Your Name - Personal Website",
+  title: "Ben Aguirre - Portfolio",
   description:
-    "Personal website featuring photos, blog posts, and more about my journey.",
+    "A clean, minimalist portfolio showcasing photography, writing, and creative work",
 };
 
 export default function RootLayout({
@@ -28,11 +30,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`font-sans ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {/* <Navigation /> */}
-          <main>{children}</main>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Suspense fallback={null}>
+            <Navigation />
+            <main className="min-h-screen">{children}</main>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

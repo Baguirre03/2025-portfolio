@@ -1,92 +1,56 @@
-import { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Blog | Your Name",
-  description: "Thoughts, ideas, and stories from my journey.",
-};
+const posts = [
+  {
+    id: 1,
+    title: "Building Scalable React Applications",
+    slug: "scalable-react-applications",
+  },
+  {
+    id: 2,
+    title: "Modern JavaScript Patterns and Best Practices",
+    slug: "modern-javascript-patterns",
+  },
+  {
+    id: 3,
+    title: "Database Design for High-Performance Applications",
+    slug: "database-design-performance",
+  },
+  {
+    id: 4,
+    title: "API Architecture: REST vs GraphQL",
+    slug: "api-architecture-rest-graphql",
+  },
+  {
+    id: 5,
+    title: "Deployment Strategies for Modern Web Apps",
+    slug: "deployment-strategies-web-apps",
+  },
+];
 
-interface BlogPost {
-  slug: string;
-  title: string;
-  excerpt: string;
-  date: string;
-  readTime: string;
-}
-
-export default function Blog() {
-  // This would typically come from a CMS, markdown files, or database
-  const posts: BlogPost[] = [
-    {
-      slug: "welcome-to-my-blog",
-      title: "Welcome to My Blog",
-      excerpt:
-        "An introduction to what you can expect from this space and why I decided to start writing.",
-      date: "2024-01-15",
-      readTime: "5 min read",
-    },
-    {
-      slug: "building-this-website",
-      title: "Building This Website",
-      excerpt:
-        "The technical journey of creating this personal website using Next.js and modern web technologies.",
-      date: "2024-01-10",
-      readTime: "8 min read",
-    },
-    {
-      slug: "thoughts-on-creativity",
-      title: "Thoughts on Creativity",
-      excerpt:
-        "Exploring what creativity means to me and how it influences both my work and personal projects.",
-      date: "2024-01-05",
-      readTime: "6 min read",
-    },
-  ];
-
+export default function BlogPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog</h1>
-        <p className="text-xl text-gray-600 mb-12">
-          Thoughts, ideas, and stories from my journey.
+    <div className="mx-auto max-w-4xl px-6 py-16 lg:px-8">
+      <div className="text-center">
+        <h1 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl">
+          Blog
+        </h1>
+        <p className="mt-6 text-lg leading-8 text-muted-foreground">
+          Technical thoughts and insights on software development
         </p>
+      </div>
 
-        <div className="space-y-8">
-          {posts.map((post) => (
-            <article
-              key={post.slug}
-              className="border-b border-gray-200 pb-8 last:border-b-0"
-            >
-              <Link href={`/blog/${post.slug}`} className="group">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                  {post.title}
-                </h2>
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  {post.excerpt}
-                </p>
-                <div className="flex items-center text-sm text-gray-500 space-x-4">
-                  <time dateTime={post.date}>
-                    {new Date(post.date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </time>
-                  <span>•</span>
-                  <span>{post.readTime}</span>
-                </div>
-              </Link>
-            </article>
-          ))}
-        </div>
-
-        {posts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600">
-              No posts yet. Check back soon for new content!
-            </p>
+      <div className="mt-16 space-y-6">
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            className="border-b border-border pb-6 last:border-b-0"
+          >
+            <h2 className="text-xl font-medium text-foreground hover:text-accent transition-colors">
+              <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+            </h2>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
