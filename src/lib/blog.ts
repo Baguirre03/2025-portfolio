@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
-import { marked } from "marked";
 
 const blogDirectory = path.join(process.cwd(), "content/blog");
 
@@ -10,7 +9,7 @@ export interface BlogPost {
   title: string;
   date: string;
   excerpt?: string;
-  content: string;
+  content: string; // raw markdown
   readTime?: string;
 }
 
@@ -48,8 +47,7 @@ export function getBlogPost(slug: string): BlogPost | null {
       title: data.title,
       date: data.date,
       excerpt: data.excerpt,
-      content: marked(content),
-      readTime: data.readTime || "5 min read",
+      content, // return raw markdown; render it client-side with react-markdown
     };
   } catch {
     return null;

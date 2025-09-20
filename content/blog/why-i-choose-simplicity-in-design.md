@@ -2,7 +2,6 @@
 title: "Why I Choose Simplicity in Design"
 date: "2025-09-18"
 excerpt: "Practical principles for shipping clear, usable interfaces."
-readTime: "3 min read"
 ---
 
 Complexity creeps in one micro-decision at a time. The fastest way to ship better software is to aggressively prefer simple solutions that users immediately understand.

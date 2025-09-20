@@ -2,7 +2,6 @@
 title: "My Journey into Photography and Code"
 date: "2025-09-15"
 excerpt: "How shooting photos improved my eye for UI and developer experience."
-readTime: "4 min read"
 ---
 
 Balancing photography with programming has changed the way I design and build software. Looking through a lens trained me to appreciate composition, contrast, and negative space—principles that translate directly into UI.

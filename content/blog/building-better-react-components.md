@@ -2,7 +2,6 @@
 title: "Building Better React Components with TypeScript"
 date: "2024-12-15"
 excerpt: "Learn how to create more maintainable and type-safe React components using TypeScript best practices."
-readTime: "8 min read"
 ---
 
 # Building Better React Components with TypeScript
