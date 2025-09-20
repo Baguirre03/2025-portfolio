@@ -68,7 +68,7 @@ export default async function BlogPost({
           <div className="prose prose-lg max-w-none">
             <ReactMarkdown
               components={{
-                h1: ({ children }) => null,
+                h1: () => null,
                 h2: ({ children }) => (
                   <h2 className="text-2xl font-semibold mb-3 mt-6">
                     {children}

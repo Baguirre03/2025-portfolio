@@ -20,6 +20,61 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Supabase Setup
+
+This project uses Supabase for both database storage and file storage. Images are uploaded directly to Supabase Storage and metadata is saved to the database.
+
+### 1. Environment Variables
+
+Create a `.env.local` file in the root directory with your Supabase credentials:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+You can find these in your Supabase project dashboard under Settings > API.
+
+### 2. Database Table
+
+Your database should have a table called `portfolio_images` with these columns:
+
+- `id` (uuid) - Primary key
+- `title` (text) - Image title
+- `description` (text) - Image description
+- `cloudinary_public_id` (text) - File path in Supabase Storage
+- `cloudinary_url` (text) - Public URL from Supabase Storage
+- `is_public` (bool) - Whether image is public
+- `display_order` (int4) - Display order
+- `created_at` (timestamptz) - Creation timestamp
+
+### 3. Set up Storage Bucket
+
+1. In your Supabase dashboard, go to Storage
+2. Create a new bucket called `photos`
+3. Set it to public so images can be accessed directly
+4. Configure any additional bucket policies as needed
+
+### 4. API Usage
+
+The API endpoints are ready to use:
+
+- **GET** `/api/photos` - Get all public images
+- **GET** `/api/photos?all=true` - Get all images (including private)
+- **POST** `/api/photos` - Upload image and save to database
+- **GET** `/api/photos/[id]` - Get specific image
+- **PUT** `/api/photos/[id]` - Update image metadata
+- **DELETE** `/api/photos/[id]` - Delete image from storage and database
+
+**POST form data fields:**
+
+- `image` (required) - Image file to upload
+- `title` (required) - Image title
+- `description` (optional) - Image description
+- `isPublic` (optional) - Boolean, defaults to true
+- `displayOrder` (optional) - Integer, defaults to 0
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
@@ -29,8 +84,10 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This is a standard Next.js application that can be deployed on any platform that supports Next.js:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Vercel** (recommended) - Connect your repository and deploy automatically
+
+For the easiest setup, use **Vercel** - just connect your repository and it will build and deploy automatically.
