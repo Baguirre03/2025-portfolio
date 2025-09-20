@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Catppuccin Latte (Light) Theme */
+  /* Catppuccin Latte (Light) Theme - Default */
   --background: #eff1f5; /* Base */
   --foreground: #4c4f69; /* Text */
   --card: #e6e9ef; /* Surface0 */
@@ -40,40 +40,42 @@
   --sidebar-ring: #1e66f5; /* Blue */
 }
 
-.dark {
-  /* Catppuccin Frappé (Dark) Theme */
-  --background: #303446; /* Base */
-  --foreground: #c6d0f5; /* Text */
-  --card: #292c3c; /* Surface0 */
-  --card-foreground: #c6d0f5; /* Text */
-  --popover: #303446; /* Base */
-  --popover-foreground: #c6d0f5; /* Text */
-  --primary: #8caaee; /* Blue */
-  --primary-foreground: #303446; /* Base */
-  --secondary: #626880; /* Surface2 */
-  --secondary-foreground: #c6d0f5; /* Text */
-  --muted: #292c3c; /* Surface0 */
-  --muted-foreground: #a5adce; /* Subtext1 */
-  --accent: #f4b8e4; /* Pink */
-  --accent-foreground: #303446; /* Base */
-  --destructive: #e78284; /* Red */
-  --destructive-foreground: #303446; /* Base */
-  --border: #414559; /* Surface1 */
-  --input: #232634; /* Mantle */
-  --ring: #8caaee; /* Blue */
-  --chart-1: #8caaee; /* Blue */
-  --chart-2: #a6d189; /* Green */
-  --chart-3: #f4b8e4; /* Pink */
-  --chart-4: #ca9ee6; /* Mauve */
-  --chart-5: #ef9f76; /* Peach */
-  --sidebar: #292c3c; /* Surface0 */
-  --sidebar-foreground: #c6d0f5; /* Text */
-  --sidebar-primary: #8caaee; /* Blue */
-  --sidebar-primary-foreground: #303446; /* Base */
-  --sidebar-accent: #f4b8e4; /* Pink */
-  --sidebar-accent-foreground: #303446; /* Base */
-  --sidebar-border: #414559; /* Surface1 */
-  --sidebar-ring: #8caaee; /* Blue */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Catppuccin Frappé (Dark) Theme - System Dark Mode */
+    --background: #303446; /* Base */
+    --foreground: #c6d0f5; /* Text */
+    --card: #292c3c; /* Surface0 */
+    --card-foreground: #c6d0f5; /* Text */
+    --popover: #303446; /* Base */
+    --popover-foreground: #c6d0f5; /* Text */
+    --primary: #8caaee; /* Blue */
+    --primary-foreground: #303446; /* Base */
+    --secondary: #626880; /* Surface2 */
+    --secondary-foreground: #c6d0f5; /* Text */
+    --muted: #292c3c; /* Surface0 */
+    --muted-foreground: #a5adce; /* Subtext1 */
+    --accent: #f4b8e4; /* Pink */
+    --accent-foreground: #303446; /* Base */
+    --destructive: #e78284; /* Red */
+    --destructive-foreground: #303446; /* Base */
+    --border: #414559; /* Surface1 */
+    --input: #232634; /* Mantle */
+    --ring: #8caaee; /* Blue */
+    --chart-1: #8caaee; /* Blue */
+    --chart-2: #a6d189; /* Green */
+    --chart-3: #f4b8e4; /* Pink */
+    --chart-4: #ca9ee6; /* Mauve */
+    --chart-5: #ef9f76; /* Peach */
+    --sidebar: #292c3c; /* Surface0 */
+    --sidebar-foreground: #c6d0f5; /* Text */
+    --sidebar-primary: #8caaee; /* Blue */
+    --sidebar-primary-foreground: #303446; /* Base */
+    --sidebar-accent: #f4b8e4; /* Pink */
+    --sidebar-accent-foreground: #303446; /* Base */
+    --sidebar-border: #414559; /* Surface1 */
+    --sidebar-ring: #8caaee; /* Blue */
+  }
 }
 
 @theme inline {

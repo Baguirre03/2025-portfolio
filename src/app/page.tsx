@@ -1,59 +1,55 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ChevronDown, Code, FileText, Terminal, Globe } from "lucide-react";
+import Link from "next/link";
+import { BlogH1 } from "@/components/blog-h1";
 
 export default function HomePage() {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
+  const [isBlogOpen, setIsBlogOpen] = useState(true);
+  const [isToolsOpen, setIsToolsOpen] = useState(true);
+  type RecentPost = { slug: string; title: string };
+  const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
+
+  useEffect(() => {
+    fetch("/api/recent-posts?limit=2")
+      .then((r) => r.json())
+      .then(setRecentPosts)
+      .catch(() => setRecentPosts([]));
+  }, []);
 
   return (
-    <div className="mx-auto max-w-2xl px-6 pt-10 flex flex-col justify-center overflow-hidden gap-5">
+    <div className="mx-auto max-w-2xl px-6 pt-10 pb-16 flex flex-col justify-center overflow-hidden gap-5">
       <div>
         <h1 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl mb-8">
-          I like building tools that make people&apos;s lives easier
+          I build tools that make people&apos;s lives easier
         </h1>
 
         <div className="prose prose-lg max-w-none">
           <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
             About Me
           </h2>
-          <h3 className="text-xl font-medium text-foreground mb-3">
-            What I do
-          </h3>
           <p className="text-muted-foreground leading-relaxed mb-6">
-            Graduating this semester, with a Bachelor&apos;s degree in marketing
-            and a minor in computer science.
-          </p>
-
-          <h3 className="text-xl font-medium text-foreground mb-3">
-            Outside of pogramming
-          </h3>
-          <p className="text-muted-foreground leading-relaxed">
-            Im usually taking photos, reading, playing chess, and exploring new
-            places. I am always learning something new and enjoy finding new
-            hobbies.
+            A current senior at Loyola University Chicago with a major in
+            marketing and a minor in computer science. Graduating this December,
+            2025.. I am a strong believer in the power of open source projects
+            and tools, and I am constantly seeking new ways to learn and stay
+            updated with the latest technologies. I thrive in fast-paced and
+            dynamic environments.
           </p>
           <div className="mt-8">
             <button
               onClick={() => setIsTimelineOpen(!isTimelineOpen)}
-              className="flex items-center gap-2 text-xl font-medium text-foreground hover:text-primary transition-colors mb-3 group"
+              className="flex items-center gap-2 text-3xl font-medium tracking-tight text-foreground hover:text-primary transition-colors mb-4 group cursor-pointer"
             >
-              <svg
+              Experience
+              <ChevronDown
                 className={`w-4 h-4 transition-transform duration-200 ${
                   isTimelineOpen ? "rotate-180" : ""
                 }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-              Experience
+              />
             </button>
             <div
               className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -69,7 +65,7 @@ export default function HomePage() {
                     <span className="text-sm font-medium text-primary">
                       May 2025 - Aug. 2025
                     </span>
-                    <div className="flex items-center gap-3 mt-1">
+                    <div className="flex items-center gap-2 mt-1">
                       <Image
                         src="/images/pinterest.svg"
                         alt="Pinterest logo"
@@ -99,15 +95,16 @@ export default function HomePage() {
                         alt="The Odin Project logo"
                         width={24}
                         height={24}
-                        className="w-6 h-6 rounded mix-blend-multiply"
+                        className="w-6 h-6 rounded"
                       />
                       <h4 className="text-lg font-semibold text-foreground">
                         The Odin Project | Open Source Contributor
                       </h4>
                     </div>
                     <p className="text-muted-foreground text-base leading-relaxed">
-                      University Marketing Dept. • Managed digital campaigns,
-                      analyzed engagement data, and supported event planning.
+                      Contributed to The Odin Project&apos;s curriculum by
+                      implementing lesson updates, improving docs, and reviewing
+                      PRs to support 150,000+ learners.
                     </p>
                   </div>
                 </li>
@@ -213,52 +210,88 @@ export default function HomePage() {
         </div>
       </div>
       <div>
-        <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
+        <button
+          onClick={() => setIsBlogOpen(!isBlogOpen)}
+          className="flex items-center gap-2 text-3xl font-medium tracking-tight text-foreground hover:text-primary transition-colors mb-4 group cursor-pointer"
+        >
           Recent Blog Posts
-        </h2>
-        <div className="space-y-3">
-          <div className="group">
-            <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
-              Building Better React Components with TypeScript
-            </h3>
-            <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
-          </div>
-          <div className="group">
-            <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
-              My Journey into Photography and Code
-            </h3>
-            <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
-          </div>
-          <div className="group">
-            <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
-              Why I Choose Simplicity in Design
-            </h3>
-            <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
+          <ChevronDown
+            className={`w-4 h-4 transition-transform duration-200 ${
+              isBlogOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isBlogOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="space-y-3 ml-2">
+            {recentPosts.map((post, index) => (
+              <BlogH1
+                key={post.slug}
+                title={post.title}
+                href={`/blog/${post.slug}`}
+                index={index == recentPosts.length - 1 ? -1 : index}
+              />
+            ))}
           </div>
         </div>
       </div>
       <div>
-        <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
-          Photos
-        </h2>
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-medium text-foreground hover:text-foreground/80 transition-colors cursor-pointer">
-              Building Better React Components with TypeScript
-            </h3>
-            <div className="w-full h-px bg-muted mt-2"></div>
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-foreground hover:text-foreground/80 transition-colors cursor-pointer">
-              My Journey into Photography and Code
-            </h3>
-            <div className="w-full h-px bg-muted mt-2"></div>
-          </div>
-          <div>
-            <h3 className="text-lg font-medium text-foreground hover:text-foreground/80 transition-colors cursor-pointer">
-              Why I Choose Simplicity in Design
-            </h3>
-            <div className="w-full h-px bg-muted mt-2"></div>
+        <button
+          onClick={() => setIsToolsOpen(!isToolsOpen)}
+          className="flex items-center gap-2 text-3xl font-medium tracking-tight text-foreground hover:text-primary transition-colors mb-4 group cursor-pointer"
+        >
+          Some Tools I&apos;ve Been Enjoying Recently
+          <ChevronDown
+            className={`w-4 h-4 transition-transform duration-200 ${
+              isToolsOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isToolsOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          }`}
+        >
+          <div className="space-y-3 ml-2">
+            <div className="group">
+              <div className="flex items-center gap-2">
+                <Code className="w-4 h-4 text-primary" />
+                <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  IDE: Cursor
+                </h3>
+              </div>
+              <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
+            </div>
+            <div className="group">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-primary" />
+                <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  Note taking: Obsidian
+                </h3>
+              </div>
+              <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
+            </div>
+            <div className="group">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-primary" />
+                <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  Terminal: Ghostty
+                </h3>
+              </div>
+              <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
+            </div>
+            <div className="group">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-primary" />
+                <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  Browser: Chrome
+                </h3>
+              </div>
+              <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
+            </div>
           </div>
         </div>
       </div>
