@@ -4,76 +4,76 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Updated color tokens for clean black/white portfolio theme */
-  --background: oklch(1 0 0); /* Pure white */
-  --foreground: oklch(0 0 0); /* Pure black */
-  --card: oklch(0.96 0 0); /* Light grey for cards */
-  --card-foreground: oklch(0 0 0); /* Black text on cards */
-  --popover: oklch(1 0 0); /* White popover background */
-  --popover-foreground: oklch(0 0 0); /* Black popover text */
-  --primary: oklch(0 0 0); /* Black primary elements */
-  --primary-foreground: oklch(1 0 0); /* White text on black */
-  --secondary: oklch(0.7 0 0); /* Medium grey */
-  --secondary-foreground: oklch(0 0 0); /* Black text on grey */
-  --muted: oklch(0.96 0 0); /* Light grey muted elements */
-  --muted-foreground: oklch(0.4 0 0); /* Dark grey muted text */
-  --accent: oklch(0.8 0.15 85); /* Subtle gold accent */
-  --accent-foreground: oklch(0 0 0); /* Black text on accent */
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0 0); /* Light grey borders */
-  --input: oklch(1 0 0); /* White input background */
-  --ring: oklch(0.8 0.15 85 / 0.5); /* Gold focus ring */
-  --chart-1: oklch(0.8 0.15 85);
-  --chart-2: oklch(0.7 0 0);
-  --chart-3: oklch(0.96 0 0);
-  --chart-4: oklch(0.85 0 0);
-  --chart-5: oklch(1 0 0);
-  --radius: 0.25rem; /* Minimal corner rounding */
-  --sidebar: oklch(0.96 0 0);
-  --sidebar-foreground: oklch(0 0 0);
-  --sidebar-primary: oklch(1 0 0);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.8 0.15 85);
-  --sidebar-accent-foreground: oklch(0 0 0);
-  --sidebar-border: oklch(0.9 0 0);
-  --sidebar-ring: oklch(0.8 0.15 85 / 0.5);
+  /* Catppuccin Latte (Light) Theme */
+  --background: #eff1f5; /* Base */
+  --foreground: #4c4f69; /* Text */
+  --card: #e6e9ef; /* Surface0 */
+  --card-foreground: #4c4f69; /* Text */
+  --popover: #eff1f5; /* Base */
+  --popover-foreground: #4c4f69; /* Text */
+  --primary: #1e66f5; /* Blue */
+  --primary-foreground: #eff1f5; /* Base */
+  --secondary: #acb0be; /* Surface2 */
+  --secondary-foreground: #4c4f69; /* Text */
+  --muted: #e6e9ef; /* Surface0 */
+  --muted-foreground: #6c6f85; /* Subtext1 */
+  --accent: #ea76cb; /* Pink */
+  --accent-foreground: #eff1f5; /* Base */
+  --destructive: #d20f39; /* Red */
+  --destructive-foreground: #eff1f5; /* Base */
+  --border: #ccd0da; /* Surface1 */
+  --input: #dce0e8; /* Surface0 */
+  --ring: #1e66f5; /* Blue */
+  --chart-1: #1e66f5; /* Blue */
+  --chart-2: #40a02b; /* Green */
+  --chart-3: #ea76cb; /* Pink */
+  --chart-4: #8839ef; /* Mauve */
+  --chart-5: #fe640b; /* Peach */
+  --radius: 0.5rem;
+  --sidebar: #e6e9ef; /* Surface0 */
+  --sidebar-foreground: #4c4f69; /* Text */
+  --sidebar-primary: #1e66f5; /* Blue */
+  --sidebar-primary-foreground: #eff1f5; /* Base */
+  --sidebar-accent: #ea76cb; /* Pink */
+  --sidebar-accent-foreground: #eff1f5; /* Base */
+  --sidebar-border: #ccd0da; /* Surface1 */
+  --sidebar-ring: #1e66f5; /* Blue */
 }
 
 .dark {
-  /* Updated dark mode colors for lighter grey theme */
-  --background: oklch(0.08 0 0); /* Very dark grey, not pure black */
-  --foreground: oklch(0.95 0 0); /* Off-white text */
-  --card: oklch(0.12 0 0); /* Slightly lighter dark grey for cards */
-  --card-foreground: oklch(0.95 0 0); /* Off-white card text */
-  --popover: oklch(0.08 0 0); /* Dark popover background */
-  --popover-foreground: oklch(0.95 0 0); /* Light popover text */
-  --primary: oklch(0.95 0 0); /* Light primary elements */
-  --primary-foreground: oklch(0.08 0 0); /* Dark text on light */
-  --secondary: oklch(0.25 0 0); /* Medium dark grey */
-  --secondary-foreground: oklch(0.95 0 0); /* Light text on dark grey */
-  --muted: oklch(0.15 0 0); /* Dark muted elements */
-  --muted-foreground: oklch(0.6 0 0); /* Medium grey muted text */
-  --accent: oklch(0.8 0.15 85); /* Same gold accent */
-  --accent-foreground: oklch(0.08 0 0); /* Dark text on accent */
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.95 0 0);
-  --border: oklch(0.2 0 0); /* Dark grey borders */
-  --input: oklch(0.12 0 0); /* Dark input background */
-  --ring: oklch(0.8 0.15 85 / 0.5); /* Gold focus ring */
-  --chart-1: oklch(0.8 0.15 85);
-  --chart-2: oklch(0.6 0 0);
-  --chart-3: oklch(0.25 0 0);
-  --chart-4: oklch(0.4 0 0);
-  --chart-5: oklch(0.15 0 0);
-  --sidebar: oklch(0.12 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.8 0.15 85);
-  --sidebar-primary-foreground: oklch(0.08 0 0);
-  --sidebar-accent: oklch(0.2 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.2 0 0);
-  --sidebar-ring: oklch(0.8 0.15 85 / 0.5);
+  /* Catppuccin Frappé (Dark) Theme */
+  --background: #303446; /* Base */
+  --foreground: #c6d0f5; /* Text */
+  --card: #292c3c; /* Surface0 */
+  --card-foreground: #c6d0f5; /* Text */
+  --popover: #303446; /* Base */
+  --popover-foreground: #c6d0f5; /* Text */
+  --primary: #8caaee; /* Blue */
+  --primary-foreground: #303446; /* Base */
+  --secondary: #626880; /* Surface2 */
+  --secondary-foreground: #c6d0f5; /* Text */
+  --muted: #292c3c; /* Surface0 */
+  --muted-foreground: #a5adce; /* Subtext1 */
+  --accent: #f4b8e4; /* Pink */
+  --accent-foreground: #303446; /* Base */
+  --destructive: #e78284; /* Red */
+  --destructive-foreground: #303446; /* Base */
+  --border: #414559; /* Surface1 */
+  --input: #232634; /* Mantle */
+  --ring: #8caaee; /* Blue */
+  --chart-1: #8caaee; /* Blue */
+  --chart-2: #a6d189; /* Green */
+  --chart-3: #f4b8e4; /* Pink */
+  --chart-4: #ca9ee6; /* Mauve */
+  --chart-5: #ef9f76; /* Peach */
+  --sidebar: #292c3c; /* Surface0 */
+  --sidebar-foreground: #c6d0f5; /* Text */
+  --sidebar-primary: #8caaee; /* Blue */
+  --sidebar-primary-foreground: #303446; /* Base */
+  --sidebar-accent: #f4b8e4; /* Pink */
+  --sidebar-accent-foreground: #303446; /* Base */
+  --sidebar-border: #414559; /* Surface1 */
+  --sidebar-ring: #8caaee; /* Blue */
 }
 
 @theme inline {
