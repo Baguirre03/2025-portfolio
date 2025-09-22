@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { getAllPhotoPublicUrls } from "@/lib/supabase";
+import {
+  getAllPhotoPublicUrls,
+  supabase,
+  uploadPhotoToBucket,
+} from "@/lib/supabase";
 
 export async function GET() {
   try {
@@ -12,4 +16,19 @@ export async function GET() {
       { status: 500 }
     );
   }
+}
+
+export async function POST(request: Request) {
+  const { image, title, description, isPublic } = await request.json();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const accessToken = session?.access_token;
+  const photo = await uploadPhotoToBucket({
+    file: image,
+    title,
+    description,
+    isPublic,
+  });
+  return NextResponse.json(photo);
 }

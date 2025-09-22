@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
-import { supabase } from "@/lib/supabase";
 
 export default function PhotoGallery() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -11,8 +10,24 @@ export default function PhotoGallery() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      if (!selectedPhoto) return;
+
       if (e.key === "Escape") {
         setSelectedPhoto(null);
+        return;
+      }
+
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
+        if (currentIndex === -1 || photos.length === 0) return;
+
+        const nextIndex =
+          e.key === "ArrowRight"
+            ? (currentIndex + 1) % photos.length
+            : (currentIndex - 1 + photos.length) % photos.length;
+
+        setSelectedPhoto(photos[nextIndex]);
       }
     };
     if (selectedPhoto) {
@@ -21,14 +36,10 @@ export default function PhotoGallery() {
     return () => {
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [selectedPhoto]);
+  }, [selectedPhoto, photos]);
 
   useEffect(() => {
     async function fetchPhotos() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
       try {
         const res = await fetch("/api/photos");
         const data: Photo[] = await res.json();
@@ -48,23 +59,21 @@ export default function PhotoGallery() {
   return (
     <>
       <div className="photo-gallery grid grid-cols-2 md:grid-cols-3 gap-4">
-        {photos
-          .filter((p) => p.bucket === "photos-public")
-          .map((photo, index) => (
-            <button
-              key={photo.id ?? index}
-              type="button"
-              className="relative aspect-square focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-              onClick={() => setSelectedPhoto(photo)}
-            >
-              <Image
-                src={photo.public_url}
-                alt={photo.title || `Photo ${index}`}
-                fill
-                className="object-cover rounded cursor-zoom-in"
-              />
-            </button>
-          ))}
+        {photos.map((photo, index) => (
+          <button
+            key={photo.id ?? index}
+            type="button"
+            className="relative aspect-square focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            onClick={() => setSelectedPhoto(photo)}
+          >
+            <Image
+              src={photo.public_url}
+              alt={photo.title || `Photo ${index}`}
+              fill
+              className="object-cover rounded cursor-zoom-in"
+            />
+          </button>
+        ))}
       </div>
 
       {selectedPhoto && (
