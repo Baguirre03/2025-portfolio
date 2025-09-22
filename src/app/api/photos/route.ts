@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    
+
     return NextResponse.json(imageRecord, { status: 201 });
   } catch (error) {
     console.error("Error uploading image:", error);
