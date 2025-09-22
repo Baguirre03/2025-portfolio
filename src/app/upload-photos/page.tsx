@@ -1,20 +1,9 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { uploadPhotoToPublicBucket } from "@/lib/supabase";
-
-// Types
-interface Photo {
-  id: string;
-  filename: string;
-  public_url: string;
-  title: string;
-  description: string;
-  file_size: number;
-  mime_type: string;
-  bucket: string;
-  uploaded_at: string;
-}
+import Image from "next/image";
+import { uploadPhotoToBucket } from "@/lib/supabase";
+import { Photo } from "@/lib/types";
 
 interface UploadResult {
   success: boolean;
@@ -26,16 +15,12 @@ interface UploadResult {
 interface FormData {
   title: string;
   description: string;
+  isPublic: boolean;
 }
 
 // Constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_FILE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-];
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
 
 // Custom hook for file validation
 const useFileValidation = () => {
@@ -67,7 +52,6 @@ const useFileValidation = () => {
   return { validateFile };
 };
 
-// Custom hook for file preview
 const useFilePreview = () => {
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -90,29 +74,24 @@ const useFilePreview = () => {
 };
 
 export default function PhotoUpload() {
-  // State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
+    isPublic: true,
   });
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Custom hooks
   const { validateFile } = useFileValidation();
   const { preview, generatePreview, clearPreview } = useFilePreview();
 
-  // Handlers
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
 
-      // Clear previous errors
       setValidationError(null);
       setUploadResult(null);
 
@@ -137,7 +116,7 @@ export default function PhotoUpload() {
   );
 
   const handleFormDataChange = useCallback(
-    (field: keyof FormData, value: string) => {
+    (field: keyof FormData, value: string | boolean) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },
     []
@@ -145,12 +124,11 @@ export default function PhotoUpload() {
 
   const resetForm = useCallback(() => {
     setSelectedFile(null);
-    setFormData({ title: "", description: "" });
+    setFormData({ title: "", description: "", isPublic: true });
     clearPreview();
     setValidationError(null);
     setUploadResult(null);
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -170,19 +148,20 @@ export default function PhotoUpload() {
       setValidationError(null);
 
       try {
-        const result = await uploadPhotoToPublicBucket(
-          selectedFile,
-          formData.title.trim() || selectedFile.name,
-          formData.description.trim()
-        );
+        const result = await uploadPhotoToBucket({
+          file: selectedFile,
+          title: formData.title.trim() || selectedFile.name,
+          description: formData.description.trim(),
+          isPublic: formData.isPublic,
+        });
 
         if (result.success) {
-          setUploadResult(result);
+          setUploadResult(result as UploadResult);
           resetForm();
         } else {
           setUploadResult({
             success: false,
-            error: result.error || "Upload failed",
+            error: (result.error as string) || "Upload failed",
           });
         }
       } catch (error) {
@@ -201,7 +180,6 @@ export default function PhotoUpload() {
     [selectedFile, formData, resetForm]
   );
 
-  // Computed values
   const isFormValid = selectedFile && !validationError && !uploading;
 
   return (
@@ -209,7 +187,6 @@ export default function PhotoUpload() {
       <h2 className="text-2xl font-bold mb-4 text-gray-900">Upload Photo</h2>
 
       <form onSubmit={handleUpload} className="space-y-4">
-        {/* File Input */}
         <div>
           <label
             htmlFor="photo-input"
@@ -234,30 +211,29 @@ export default function PhotoUpload() {
           )}
         </div>
 
-        {/* Validation Error */}
         {validationError && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-800 text-sm">{validationError}</p>
           </div>
         )}
 
-        {/* Preview */}
         {preview && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Preview
             </label>
-            <div className="relative">
-              <img
+            <div className="relative h-48">
+              <Image
                 src={preview}
                 alt="Preview"
-                className="w-full h-48 object-cover rounded-lg border shadow-sm"
+                fill
+                className="object-cover rounded-lg border shadow-sm"
+                sizes="100vw"
               />
             </div>
           </div>
         )}
 
-        {/* Title Input */}
         <div>
           <label
             htmlFor="title"
@@ -277,7 +253,6 @@ export default function PhotoUpload() {
           />
         </div>
 
-        {/* Description Input */}
         <div>
           <label
             htmlFor="description"
@@ -301,8 +276,26 @@ export default function PhotoUpload() {
             {formData.description.length}/500 characters
           </p>
         </div>
-
-        {/* Upload Button */}
+        <div>
+          <label
+            htmlFor="isPublic"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Visibility
+          </label>
+          <select
+            id="isPublic"
+            value={formData.isPublic ? "public" : "private"}
+            onChange={(e) =>
+              handleFormDataChange("isPublic", e.target.value === "public")
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
+            disabled={uploading}
+          >
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+          </select>
+        </div>
         <button
           type="submit"
           disabled={!isFormValid}

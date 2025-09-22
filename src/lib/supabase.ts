@@ -1,12 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
-
+import { Photo } from "./types";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
+const PUBLIC_BUCKET = "photos-public";
+const PRIVATE_BUCKET = "photos-private";
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export const getPublicPhotos = async () => {
+export const getPublicPhotos = async (): Promise<Photo[]> => {
   const { data: photos, error } = await supabase
     .from("photos")
     .select("*")
@@ -16,57 +17,50 @@ export const getPublicPhotos = async () => {
   return photos;
 };
 
-export type PublicPhoto = {
-  id: string | number;
-  title: string | null;
-  description: string | null;
-  display_url: string;
-};
-
-export async function getAllPhotoPublicUrls(): Promise<PublicPhoto[]> {
+export async function getAllPhotoPublicUrls(): Promise<Photo[]> {
   const { data, error } = await supabase
     .from("photos")
-    .select("id,title,description,public_url")
+    .select("*")
     .order("uploaded_at", { ascending: false });
-
   if (error) {
     throw error;
   }
 
-  type PhotoDbRow = {
-    id: string | number;
-    title: string | null;
-    description: string | null;
-    public_url: string | null;
-  };
-
-  const rows = (data ?? []) as PhotoDbRow[];
-  return rows
-    .filter(
-      (row) => typeof row.public_url === "string" && row.public_url.length > 0
-    )
-    .map((row) => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      display_url: row.public_url as string,
-    }));
+  return data.map((row: Photo) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    public_url: row.public_url,
+    filename: row.filename,
+    file_size: row.file_size,
+    mime_type: row.mime_type,
+    bucket: row.bucket,
+    uploaded_at: row.uploaded_at,
+  }));
 }
 
-export async function uploadPhotoToPublicBucket(
-  file: File,
+type uploadPhotoToBucketParams = {
+  file: File;
+  title?: string;
+  description?: string;
+  isPublic?: boolean;
+};
+
+export async function uploadPhotoToBucket({
+  file,
   title = "",
-  description = ""
-) {
+  description = "",
+  isPublic = true,
+}: uploadPhotoToBucketParams) {
   try {
     // Generate unique filename
+    const bucket = isPublic ? PUBLIC_BUCKET : PRIVATE_BUCKET;
     const fileExt = file.name.split(".").pop();
     const fileName = `${uuidv4()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    // Upload file to Supabase Storage
     const { error: uploadError } = await supabase.storage
-      .from("photos-public")
+      .from(bucket)
       .upload(filePath, file, {
         cacheControl: "3600",
         upsert: false,
@@ -78,10 +72,9 @@ export async function uploadPhotoToPublicBucket(
 
     // Get public URL
     const { data: urlData } = supabase.storage
-      .from("photos-public")
+      .from(bucket)
       .getPublicUrl(filePath);
 
-    // Insert record into photos table
     const { data: photoRecord, error: dbError } = await supabase
       .from("photos")
       .insert([
@@ -92,24 +85,24 @@ export async function uploadPhotoToPublicBucket(
           description: description,
           file_size: file.size,
           mime_type: file.type,
-          bucket: "photos-public",
+          bucket: bucket,
+          uploaded_at: new Date().toISOString(),
         },
       ])
       .select()
       .single();
 
     if (dbError) {
-      // If database insert fails, clean up the uploaded file
-      await supabase.storage.from("photos-public").remove([filePath]);
+      await supabase.storage.from(bucket).remove([filePath]);
       throw dbError;
     }
+
     return {
       success: true,
       photo: photoRecord,
       publicUrl: urlData.publicUrl,
     };
   } catch (error) {
-    console.error("Error uploading photo:", error);
     return {
       success: false,
       error: error,
