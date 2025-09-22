@@ -21,7 +21,7 @@ export default function LoginPage() {
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) router.replace("/photography");
+      if (session) router.replace("/");
     });
     return () => sub.subscription?.unsubscribe();
   }, [router]);

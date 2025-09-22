@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
 
 export default function PhotoGallery() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -24,9 +25,14 @@ export default function PhotoGallery() {
 
   useEffect(() => {
     async function fetchPhotos() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       try {
         const res = await fetch("/api/photos");
         const data: Photo[] = await res.json();
+        console.log(data, "data");
         setPhotos(data);
       } catch (error) {
         console.error("Error fetching photos:", error);
