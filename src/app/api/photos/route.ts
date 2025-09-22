@@ -1,14 +1,64 @@
 import { NextResponse } from "next/server";
-import {
-  getAllPhotoPublicUrls,
-  supabase,
-  uploadPhotoToBucket,
-} from "@/lib/supabase";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+import type { Photo } from "@/lib/types";
 
 export async function GET() {
   try {
-    const photos = await getAllPhotoPublicUrls();
-    return NextResponse.json(photos);
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set({ name, value, ...options })
+            );
+          },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    // Determine admin role (best effort; if not readable due to RLS, defaults to non-admin)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user?.id ?? "")
+      .maybeSingle();
+
+    const isAdmin = profile?.role === "admin";
+
+    // Let RLS on photos control visibility.
+    const { data: photos, error } = await supabase
+      .from("photos")
+      .select("*")
+      .order("uploaded_at", { ascending: false });
+
+    if (error) throw error;
+
+    // For private photos and admins, generate short-lived signed URLs
+    const result = await Promise.all(
+      (photos ?? []).map(async (p: Photo) => {
+        if (p.bucket === "photos-private" && isAdmin) {
+          const { data: signed } = await supabase.storage
+            .from("photos-private")
+            .createSignedUrl(p.filename, 60 * 60); // 1 hour
+          return { ...p, public_url: signed?.signedUrl ?? p.public_url };
+        }
+        return p;
+      })
+    );
+
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error) {
     console.error("Error fetching photos:", error);
     return NextResponse.json(
@@ -16,19 +66,4 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
-
-export async function POST(request: Request) {
-  const { image, title, description, isPublic } = await request.json();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const accessToken = session?.access_token;
-  const photo = await uploadPhotoToBucket({
-    file: image,
-    title,
-    description,
-    isPublic,
-  });
-  return NextResponse.json(photo);
 }

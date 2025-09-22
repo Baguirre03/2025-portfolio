@@ -1,11 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import { v4 as uuidv4 } from "uuid";
 import { Photo } from "./types";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const PUBLIC_BUCKET = "photos-public";
 const PRIVATE_BUCKET = "photos-private";
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Browser client: keeps session in cookies compatible with the server client
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
 export const getPublicPhotos = async (): Promise<Photo[]> => {
   const { data: photos, error } = await supabase

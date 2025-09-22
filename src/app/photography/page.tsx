@@ -43,7 +43,6 @@ export default function PhotoGallery() {
       try {
         const res = await fetch("/api/photos");
         const data: Photo[] = await res.json();
-        console.log(data, "data");
         setPhotos(data);
       } catch (error) {
         console.error("Error fetching photos:", error);
@@ -71,6 +70,7 @@ export default function PhotoGallery() {
               alt={photo.title || `Photo ${index}`}
               fill
               className="object-cover rounded cursor-zoom-in"
+              // unoptimized={photo.bucket === "photos-private"}
             />
           </button>
         ))}
@@ -93,6 +93,7 @@ export default function PhotoGallery() {
                 className="object-contain"
                 sizes="100vw"
                 priority
+                // unoptimized={selectedPhoto.bucket === "photos-private"}
               />
             </div>
             <div className="mt-4 text-center text-white">

@@ -13,6 +13,13 @@ export default function LoginPage() {
   useEffect(() => {
     const mounted = true;
     (async () => {
+      // Handle magic link/code exchange on redirect back to the app
+      try {
+        await supabase.auth.exchangeCodeForSession(window.location.href);
+      } catch (e) {
+        console.log(e, "e");
+      }
+
       const { data } = await supabase.auth.getSession();
       if (!mounted) return;
       if (data.session) {
@@ -21,7 +28,10 @@ export default function LoginPage() {
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) router.replace("/");
+      if (session) {
+        router.refresh();
+        router.replace("/photography");
+      }
     });
     return () => sub.subscription?.unsubscribe();
   }, [router]);
