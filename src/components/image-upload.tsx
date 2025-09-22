@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Image as ImageIcon } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface ImageUploadProps {
   onUploadComplete?: () => void;
@@ -33,6 +34,9 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
     setIsUploading(true);
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
       const formData = new FormData();
       formData.append("image", selectedFile);
       formData.append("title", title);
@@ -43,6 +47,9 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
       const response = await fetch("/api/photos", {
         method: "POST",
         body: formData,
+        headers: accessToken
+          ? { Authorization: `Bearer ${accessToken}` }
+          : undefined,
       });
 
       if (response.ok) {

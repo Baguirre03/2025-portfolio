@@ -10,7 +10,6 @@ export interface BlogPost {
   date: string;
   excerpt?: string;
   content: string; // raw markdown
-  readTime?: string;
 }
 
 export function getAllBlogPosts(): BlogPost[] {
@@ -29,7 +28,6 @@ export function getAllBlogPosts(): BlogPost[] {
         date: data.date,
         excerpt: data.excerpt,
         content,
-        readTime: data.readTime || "5 min read",
       };
     });
 
@@ -47,7 +45,7 @@ export function getBlogPost(slug: string): BlogPost | null {
       title: data.title,
       date: data.date,
       excerpt: data.excerpt,
-      content, // return raw markdown; render it client-side with react-markdown
+      content,
     };
   } catch {
     return null;

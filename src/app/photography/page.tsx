@@ -1,50 +1,46 @@
 "use client";
 import { useState, useEffect } from "react";
-import { getPublicPhotos } from "@/lib/supabase";
 import Image from "next/image";
 
+type PhotoRow = {
+  id?: string | number;
+  title?: string | null;
+  description?: string | null;
+  display_url: string;
+};
+
 export default function PhotoGallery() {
-  const [photos, setPhotos] = useState<{ name: string; url: string }[]>([]);
+  const [photos, setPhotos] = useState<PhotoRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchPhotos() {
       try {
-        // List all files in the photos bucket
-        const files = await getPublicPhotos();
-        console.log(files, "files");
-
-        const photoUrls = files.map((file) => {
-          return {
-            name: file.name,
-            url: file.name,
-          };
-        });
-
-        setPhotos(photoUrls);
+        const res = await fetch("/api/photos");
+        const data: PhotoRow[] = await res.json();
+        setPhotos(data);
       } catch (error) {
         console.error("Error fetching photos:", error);
       } finally {
         setLoading(false);
       }
     }
-
     fetchPhotos();
   }, []);
 
   if (loading) return <div>Loading photos...</div>;
 
   return (
-    <div className="photo-gallery">
+    <div className="photo-gallery grid grid-cols-2 md:grid-cols-3 gap-4">
       {photos.map((photo, index) => (
-        <Image
-          key={index}
-          src={photo.url}
-          alt={photo.name}
-          width={200}
-          height={200}
-          className="object-cover"
-        />
+        <div key={photo.id ?? index} className="relative aspect-square">
+          <Image
+            src={photo.display_url}
+            alt={photo.title ?? `Photo ${index + 1}`}
+            fill
+            className="object-cover rounded"
+          />
+        </div>
       ))}
     </div>
   );

@@ -2,11 +2,6 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllBlogPosts, getBlogPost } from "@/lib/blog";
 import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-
-interface BlogPostMeta {
-  slug: string;
-}
 
 export async function generateStaticParams() {
   return getAllBlogPosts().map((post) => ({ slug: post.slug }));
@@ -60,8 +55,6 @@ export default async function BlogPost({
                   day: "numeric",
                 })}
               </time>
-              <span>•</span>
-              <span>{post.readTime}</span>
             </div>
           </header>
 

@@ -14,10 +14,11 @@ import {
   Mail,
   Twitter,
 } from "lucide-react";
-import { useTheme } from "next-themes";
+// import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
 const navigation = [
+  { name: "Home", href: "/" },
   { name: "Projects", href: "/projects" },
   { name: "Blog", href: "/blog" },
   { name: "Photography", href: "/photography" },
@@ -25,7 +26,7 @@ const navigation = [
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
+  // const { theme, setTheme } = useTheme();
   const pathname = usePathname();
 
   return (
