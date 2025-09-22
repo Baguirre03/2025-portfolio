@@ -101,7 +101,7 @@ export function Navigation() {
           </div>
 
           {/* Theme Toggle */}
-          <Button
+          {/* <Button
             variant="ghost"
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -110,7 +110,7 @@ export function Navigation() {
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
-          </Button>
+          </Button> */}
         </div>
       </nav>
 
@@ -170,7 +170,7 @@ export function Navigation() {
               </Link>
             </div>
 
-            <div className="pt-4">
+            {/* <div className="pt-4">
               <Button
                 variant="ghost"
                 size="sm"
@@ -181,7 +181,7 @@ export function Navigation() {
                 <Moon className="absolute ml-2 h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                 Toggle theme
               </Button>
-            </div>
+            </div> */}
           </div>
         </div>
       )}
