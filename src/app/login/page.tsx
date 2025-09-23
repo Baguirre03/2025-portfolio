@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 
-const IS_DEV = process.env.NEXT_PUBLIC_ENVIRONMENT === "dev";
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -47,9 +45,7 @@ export default function LoginPage() {
         options: {
           emailRedirectTo:
             typeof window !== "undefined"
-              ? `${
-                  IS_DEV ? "http://localhost:3000" : process.env.NEXT_PROD_URL
-                }/login`
+              ? `${window.location.origin}/login`
               : undefined,
         },
       });
