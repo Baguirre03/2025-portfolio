@@ -33,7 +33,6 @@ export async function GET() {
       .select("*")
       .order("uploaded_at", { ascending: false });
 
-    console.log(photos, "PHOTOS");
     if (error) throw error;
     // For private photos and admins, generate short-lived signed URLs
     const result = await Promise.all(
