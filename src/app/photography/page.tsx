@@ -57,12 +57,12 @@ export default function PhotoGallery() {
 
   return (
     <>
-      <div className="photo-gallery grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="photo-gallery grid grid-cols-2 md:grid-cols-5 gap-2">
         {photos.map((photo, index) => (
           <button
             key={photo.id ?? index}
             type="button"
-            className="relative aspect-square focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+            className="relative aspect-square focus:outline-none focus:ring-2 rounded"
             onClick={() => setSelectedPhoto(photo)}
           >
             <Image

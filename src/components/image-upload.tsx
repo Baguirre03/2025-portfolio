@@ -54,7 +54,6 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Upload successful:", result);
 
         // Reset form
         setTitle("");
