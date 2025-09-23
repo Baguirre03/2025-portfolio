@@ -40,9 +40,17 @@ export async function middleware(req: NextRequest) {
   }
 
   // Allow only the configured admin email
-  const adminEmail =
-    process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-  if (adminEmail && session.user.email !== adminEmail) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user?.id ?? "")
+    .maybeSingle();
+
+  const isAdmin = profile?.role === "admin";
+  if (!isAdmin) {
     return new NextResponse("Not found", { status: 404 });
   }
 

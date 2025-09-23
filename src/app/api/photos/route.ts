@@ -26,7 +26,6 @@ export async function GET() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    // Determine admin role (best effort; if not readable due to RLS, defaults to non-admin)
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -35,7 +34,6 @@ export async function GET() {
 
     const isAdmin = profile?.role === "admin";
 
-    // Let RLS on photos control visibility.
     const { data: photos, error } = await supabase
       .from("photos")
       .select("*")

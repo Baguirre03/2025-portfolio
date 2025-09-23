@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ChevronDown, Code, FileText, Terminal, Globe } from "lucide-react";
-import Link from "next/link";
 import { BlogH1 } from "@/components/blog-h1";
 
 export default function HomePage() {
