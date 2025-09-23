@@ -24,7 +24,7 @@ export default function HomePage() {
     <div className="mx-auto max-w-2xl px-6 pt-10 pb-16 flex flex-col justify-center overflow-hidden gap-5">
       <div>
         <h1 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl mb-8">
-          I build tools that make people&apos;s lives easier
+          I build things that people actually want to use
         </h1>
 
         <div className="prose prose-lg max-w-none">
@@ -34,10 +34,9 @@ export default function HomePage() {
           <p className="text-muted-foreground leading-relaxed mb-6">
             A current senior at Loyola University Chicago with a major in
             marketing and a minor in computer science. Graduating this December,
-            2025.. I am a strong believer in the power of open source projects
+            2025. I am a strong believer in the power of open source projects
             and tools, and I am constantly seeking new ways to learn and stay
-            updated with the latest technologies. I thrive in fast-paced and
-            dynamic environments.
+            updated with the latest technologies.
           </p>
           <div className="mt-8">
             <button
