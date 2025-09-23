@@ -82,14 +82,14 @@ export function Navigation() {
               <Github className="h-4 w-4" />
               <span className="sr-only">GitHub</span>
             </Link>
-            <Link
+            {/* <Link
               href="https://x.com/Ben_Aguirre1"
               target="_blank"
               className="text-muted-foreground hover:text-foreground transition-colors p-2"
             >
               <Twitter className="h-4 w-4" />
               <span className="sr-only">Twitter</span>
-            </Link>
+            </Link> */}
           </div>
 
           {/* Theme Toggle */}
@@ -127,14 +127,14 @@ export function Navigation() {
             ))}
             {/* Social Links for Mobile */}
             <div className="space-y-2 pt-4 border-t">
-              <Link
+              {/* <Link
                 href="mailto:hello@example.com"
                 className="flex items-center rounded-lg px-3 py-2 text-base font-semibold leading-7 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Mail className="mr-3 h-4 w-4" />
                 Email
-              </Link>
+              </Link> */}
               <Link
                 href="https://github.com"
                 className="flex items-center rounded-lg px-3 py-2 text-base font-semibold leading-7 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -151,7 +151,7 @@ export function Navigation() {
                 <Linkedin className="mr-3 h-4 w-4" />
                 LinkedIn
               </Link>
-              <Link
+              {/* <Link
                 href="https://twitter.com/yourusername"
                 target="_blank"
                 className="flex items-center rounded-lg px-3 py-2 text-base font-semibold leading-7 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -159,7 +159,7 @@ export function Navigation() {
               >
                 <Twitter className="mr-3 h-4 w-4" />
                 Twitter
-              </Link>
+              </Link> */}
             </div>
 
             {/* <div className="pt-4">
