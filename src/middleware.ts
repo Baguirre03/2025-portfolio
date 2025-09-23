@@ -39,18 +39,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Allow only the configured admin email
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user?.id ?? "")
-    .maybeSingle();
 
-  const isAdmin = profile?.role === "admin";
-  if (!isAdmin) {
+  const role =
+    (user?.user_metadata as { role?: string } | undefined)?.role ??
+    (user?.app_metadata as { role?: string } | undefined)?.role;
+
+  if (role !== "admin") {
     return new NextResponse("Not found", { status: 404 });
   }
 

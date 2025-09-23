@@ -2,8 +2,8 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
-import { uploadPhotoToBucket } from "@/lib/supabase";
 import { Photo } from "@/lib/types";
+import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/upload";
 
 interface UploadResult {
   success: boolean;
@@ -17,10 +17,6 @@ interface FormData {
   description: string;
   isPublic: boolean;
 }
-
-// Constants
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
 
 // Custom hook for file validation
 const useFileValidation = () => {
@@ -148,22 +144,29 @@ export default function PhotoUpload() {
       setValidationError(null);
 
       try {
-        const result = await uploadPhotoToBucket({
-          file: selectedFile,
-          title: formData.title.trim() || selectedFile.name,
-          description: formData.description.trim(),
-          isPublic: formData.isPublic,
+        const payload = new FormData();
+        payload.append("file", selectedFile);
+        payload.append("title", formData.title.trim() || selectedFile.name);
+        payload.append("description", formData.description.trim());
+        payload.append("isPublic", String(formData.isPublic));
+
+        const response = await fetch("/api/upload-photo", {
+          method: "POST",
+          body: payload,
         });
 
-        if (result.success) {
-          setUploadResult(result as UploadResult);
-          resetForm();
-        } else {
+        const result = (await response.json()) as UploadResult;
+
+        if (!response.ok || !result.success) {
           setUploadResult({
             success: false,
-            error: (result.error as string) || "Upload failed",
+            error: result.error || "Upload failed",
           });
+          return;
         }
+
+        setUploadResult(result);
+        resetForm();
       } catch (error) {
         const errorMessage =
           error instanceof Error

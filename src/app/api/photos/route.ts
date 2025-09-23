@@ -26,25 +26,19 @@ export async function GET() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user?.id ?? "")
-      .maybeSingle();
 
-    const isAdmin = profile?.role === "admin";
-
-    const { data: photos, error } = await supabase
+    const role = (user?.user_metadata as { role?: string } | undefined)?.role;
+    const { data: photos, error: error } = await supabase
       .from("photos")
       .select("*")
       .order("uploaded_at", { ascending: false });
 
+    console.log(photos, "PHOTOS");
     if (error) throw error;
-
     // For private photos and admins, generate short-lived signed URLs
     const result = await Promise.all(
       (photos ?? []).map(async (p: Photo) => {
-        if (p.bucket === "photos-private" && isAdmin) {
+        if (p.bucket === "photos-private" && role === "admin") {
           const { data: signed } = await supabase.storage
             .from("photos-private")
             .createSignedUrl(p.filename, 60 * 60); // 1 hour
