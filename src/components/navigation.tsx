@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Github, Linkedin, Mail, Twitter } from "lucide-react";
+import { Menu, X, Github, Linkedin } from "lucide-react";
 // import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 

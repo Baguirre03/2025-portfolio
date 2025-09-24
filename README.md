@@ -2,7 +2,7 @@
 
 A modern, fast personal portfolio showcasing projects, writing, and photography.
 
-- **Live Demo**: [https://2025-portfolio-ivory-xi.vercel.app/](https://2025-portfolio-ivory-xi.vercel.app/)
+- **Live Demo**: [https://benaguirre.dev](https://2025-portfolio-ivory-xi.vercel.app/)
 - **Author**: Ben Aguirre
 
 ## Features

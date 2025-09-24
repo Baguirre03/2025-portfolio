@@ -1,10 +1,10 @@
 import type React from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Navigation } from "@/components/navigation";
 import { Suspense } from "react";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,9 +17,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ben Aguirre - Portfolio",
+  title: "Ben Aguirre",
   description:
-    "A clean, minimalist portfolio showcasing photography, writing, and creative work",
+    "Ben Aguirre's portfolio highlighting Loyola Chicago marketer-turned-software builder, featuring projects, photography, writing, and open source work",
+  // No need to set icons here anymore - handled by the client component
 };
 
 export default function RootLayout({
@@ -32,6 +33,9 @@ export default function RootLayout({
       <body
         className={`font-sans ${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        <head>
+          <link rel="icon" href="/images/code-3.png" />
+        </head>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
