@@ -1,7 +1,7 @@
-# h1 testing this blog
-## what are we doing
-### another header
-#### another
+# H1 Testing This Blog
+## What Are We Doing
+### Another Header
+#### Another
 ```
 this is a code block
 ```
@@ -14,6 +14,7 @@ def hello():
 okay now more
 - bullets
 - bullets
+
 [] checklist
 - [x] another
 - 
