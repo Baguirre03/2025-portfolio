@@ -13,16 +13,20 @@ export default function BlogPage() {
   }, []);
 
   if (blogPosts.length === 0) {
-    return <div>...posts coming soon</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div>...posts coming soon</div>
+      </div>
+    );
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 lg:px-8">
-      <div className="mt-16 space-y-6">
+    <div className="mx-auto max-w-3xl px-6 pt-5 lg:px-8">
+      <div className="space-y-6">
         {blogPosts.map((post) => (
           <div
             key={post.slug}
-            className="border-b border-border pb-6 last:border-b-0"
+            className="border-b border-t pt-6 border-border pb-6"
           >
             <BlogH1
               title={post.title}

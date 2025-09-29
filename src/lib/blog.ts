@@ -36,12 +36,13 @@ export function getAllBlogPosts(): BlogPost[] {
 
 export function getBlogPost(slug: string): BlogPost | null {
   try {
-    const fullPath = path.join(blogDirectory, `${slug}.md`);
+    const normalizedSlug = decodeURIComponent(slug);
+    const fullPath = path.join(blogDirectory, `${normalizedSlug}.md`);
     const fileContents = fs.readFileSync(fullPath, "utf8");
     const { data, content } = matter(fileContents);
 
     return {
-      slug,
+      slug: normalizedSlug,
       title: data.title,
       date: data.date,
       excerpt: data.excerpt,

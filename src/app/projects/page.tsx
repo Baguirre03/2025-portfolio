@@ -67,7 +67,7 @@ const otherProjects = [
 
 export default function ProjectsPage() {
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+    <div className="mx-auto max-w-7xl px-6 pt-5 lg:px-8">
       <div className="text-center">
         <h1 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl">
           Projects

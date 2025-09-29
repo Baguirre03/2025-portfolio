@@ -33,6 +33,7 @@ export default async function BlogPost({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  console.log(slug);
   const post = getBlogPost(slug);
 
   if (!post) {
@@ -84,11 +85,14 @@ export default async function BlogPost({
                   <strong className="font-semibold">{children}</strong>
                 ),
                 em: ({ children }) => <em className="italic">{children}</em>,
-                code: ({ children }) => (
-                  <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">
-                    {children}
-                  </code>
-                ),
+                code: ({ children }) => {
+                  console.log(children);
+                  return (
+                    <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">
+                      {children}
+                    </code>
+                  );
+                },
                 pre: ({ children }) => (
                   <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto mb-4">
                     {children}
