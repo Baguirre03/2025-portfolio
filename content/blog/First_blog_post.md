@@ -1,5 +1,5 @@
 ---
-title: Hello world
+title: Connecting my Blog with Obsidian
 date: 2025-09-24
 excerpt: what is this about?
 ---
