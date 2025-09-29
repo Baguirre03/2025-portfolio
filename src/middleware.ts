@@ -43,9 +43,7 @@ export async function middleware(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const role =
-    (user?.user_metadata as { role?: string } | undefined)?.role ??
-    (user?.app_metadata as { role?: string } | undefined)?.role;
+  const role = user?.app_metadata?.role as string | undefined;
 
   if (role !== "admin") {
     return new NextResponse("Not found", { status: 404 });

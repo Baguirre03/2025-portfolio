@@ -1,11 +1,19 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
+
+type PhotosResponse = {
+  photos: Photo[];
+  nextCursor: number | null;
+};
 
 export default function PhotoGallery() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
 
   useEffect(() => {
@@ -38,25 +46,82 @@ export default function PhotoGallery() {
     };
   }, [selectedPhoto, photos]);
 
+  const loadPhotos = useCallback(async (cursor?: number) => {
+    const params = new URLSearchParams();
+    if (typeof cursor === "number" && cursor > 0) {
+      params.set("cursor", cursor.toString());
+    }
+
+    const url = `/api/photos${params.size ? `?${params.toString()}` : ""}`;
+    const res = await fetch(url, { cache: "no-store" });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch photos: ${res.status}`);
+    }
+
+    const data: PhotosResponse = await res.json();
+    setPhotos((prev) =>
+      typeof cursor === "number" && cursor > 0
+        ? [...prev, ...data.photos]
+        : data.photos
+    );
+    setNextCursor(data.nextCursor);
+  }, []);
+
   useEffect(() => {
-    async function fetchPhotos() {
+    let cancelled = false;
+
+    async function fetchInitialPhotos() {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await fetch("/api/photos");
-        const data: Photo[] = await res.json();
-        setPhotos(data);
-      } catch (error) {
-        console.error("Error fetching photos:", error);
+        await loadPhotos();
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Error fetching photos:", err);
+        setError("Unable to load photos right now.");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
-    fetchPhotos();
-  }, []);
+
+    fetchInitialPhotos();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadPhotos]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (nextCursor == null) return;
+
+    setLoadingMore(true);
+    setError(null);
+    try {
+      await loadPhotos(nextCursor);
+    } catch (err) {
+      console.error("Error fetching more photos:", err);
+      setError("Unable to load more photos. Please try again.");
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadPhotos, nextCursor]);
 
   if (loading) return <div>Loading photos...</div>;
 
+  if (error && photos.length === 0) {
+    return <div>{error}</div>;
+  }
+
   return (
     <>
+      {error && (
+        <div className="mb-4 text-sm text-red-500" role="alert">
+          {error}
+        </div>
+      )}
       <div className="photo-gallery grid grid-cols-2 md:grid-cols-5 gap-2">
         {photos.map((photo, index) => (
           <button
@@ -75,6 +140,19 @@ export default function PhotoGallery() {
           </button>
         ))}
       </div>
+
+      {nextCursor != null && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            className="px-4 py-2 text-sm font-medium text-white bg-black rounded disabled:opacity-60 disabled:cursor-not-allowed"
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? "Loading..." : "Load more photos"}
+          </button>
+        </div>
+      )}
 
       {selectedPhoto && (
         <div
