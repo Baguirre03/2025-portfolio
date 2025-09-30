@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
 
@@ -15,6 +15,30 @@ export default function PhotoGallery() {
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Calculate how many photos to load based on viewport
+  const calculatePhotosToLoad = useCallback(() => {
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    // Determine columns based on breakpoint (md:grid-cols-5, default grid-cols-2)
+    const columns = viewportWidth >= 768 ? 5 : 2;
+
+    // Estimate photo height (aspect-square + gap)
+    // Each photo is roughly viewportWidth / columns, plus gap
+    const gapSize = 8; // gap-2 = 0.5rem = 8px
+    const photoSize = (viewportWidth - (columns + 1) * gapSize) / columns;
+
+    // Calculate rows that fit in viewport + 2 extra rows for smooth scrolling
+    const rowsThatFit = Math.ceil(viewportHeight / (photoSize + gapSize));
+    const bufferRows = 2;
+    const totalRows = rowsThatFit + bufferRows;
+
+    // Total photos = rows × columns, minimum 12, maximum 50
+    const calculated = totalRows * columns;
+    return Math.min(Math.max(calculated, 12), 50);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -46,10 +70,13 @@ export default function PhotoGallery() {
     };
   }, [selectedPhoto, photos]);
 
-  const loadPhotos = useCallback(async (cursor?: number) => {
+  const loadPhotos = useCallback(async (cursor?: number, limit?: number) => {
     const params = new URLSearchParams();
     if (typeof cursor === "number" && cursor > 0) {
       params.set("cursor", cursor.toString());
+    }
+    if (limit) {
+      params.set("limit", limit.toString());
     }
 
     const url = `/api/photos${params.size ? `?${params.toString()}` : ""}`;
@@ -75,7 +102,8 @@ export default function PhotoGallery() {
       setLoading(true);
       setError(null);
       try {
-        await loadPhotos();
+        const limit = calculatePhotosToLoad();
+        await loadPhotos(undefined, limit);
       } catch (err) {
         if (cancelled) return;
         console.error("Error fetching photos:", err);
@@ -92,22 +120,44 @@ export default function PhotoGallery() {
     return () => {
       cancelled = true;
     };
-  }, [loadPhotos]);
+  }, [loadPhotos, calculatePhotosToLoad]);
 
   const handleLoadMore = useCallback(async () => {
-    if (nextCursor == null) return;
+    if (nextCursor == null || loadingMore) return;
 
     setLoadingMore(true);
     setError(null);
     try {
-      await loadPhotos(nextCursor);
+      const limit = calculatePhotosToLoad();
+      await loadPhotos(nextCursor, limit);
     } catch (err) {
       console.error("Error fetching more photos:", err);
       setError("Unable to load more photos. Please try again.");
     } finally {
       setLoadingMore(false);
     }
-  }, [loadPhotos, nextCursor]);
+  }, [loadPhotos, nextCursor, loadingMore, calculatePhotosToLoad]);
+
+  // Infinite scroll: observe when the load more trigger enters viewport
+  useEffect(() => {
+    if (!loadMoreRef.current || nextCursor == null) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !loadingMore) {
+          handleLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "100px" } // Trigger 100px before visible
+    );
+
+    observer.observe(loadMoreRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [nextCursor, loadingMore, handleLoadMore]);
 
   if (loading) return <div>Loading photos...</div>;
 
@@ -141,16 +191,12 @@ export default function PhotoGallery() {
         ))}
       </div>
 
+      {/* Infinite scroll trigger */}
       {nextCursor != null && (
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            className="px-4 py-2 text-sm font-medium text-white bg-black rounded disabled:opacity-60 disabled:cursor-not-allowed"
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-          >
-            {loadingMore ? "Loading..." : "Load more photos"}
-          </button>
+        <div ref={loadMoreRef} className="mt-6 flex justify-center py-4">
+          {loadingMore && (
+            <div className="text-sm text-gray-500">Loading more photos...</div>
+          )}
         </div>
       )}
 

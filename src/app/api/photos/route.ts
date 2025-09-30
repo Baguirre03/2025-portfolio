@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     } = await supabase.auth.getUser();
     const role = user?.app_metadata?.role as string | undefined;
     const from = cursor;
-    const to = cursor + limit;
+    const to = cursor + limit - 1; // range is inclusive, so subtract 1
     const { data: photos, error } = await supabase
       .from("photos")
       .select("*")
@@ -51,8 +51,8 @@ export async function GET(request: Request) {
 
     if (error) throw error;
 
-    const hasMore = (photos?.length ?? 0) > limit;
-    const items = hasMore ? photos!.slice(0, limit) : photos ?? [];
+    const hasMore = (photos?.length ?? 0) === limit;
+    const items = photos ?? [];
     const nextCursor = hasMore ? cursor + limit : null;
 
     // For private photos and admins, generate short-lived signed URLs
