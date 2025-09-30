@@ -80,7 +80,7 @@ export default function PhotoGallery() {
     }
 
     const url = `/api/photos${params.size ? `?${params.toString()}` : ""}`;
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(url);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch photos: ${res.status}`);
@@ -185,6 +185,9 @@ export default function PhotoGallery() {
               alt={photo.title || `Photo ${index}`}
               fill
               className="object-cover rounded cursor-zoom-in"
+              sizes="(max-width: 768px) 50vw, 20vw"
+              loading={index < 18 ? "eager" : "lazy"}
+              priority={index < 6}
               // unoptimized={photo.bucket === "photos-private"}
             />
           </button>
