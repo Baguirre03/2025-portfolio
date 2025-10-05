@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getAllBlogPosts, getBlogPost } from "@/lib/blog";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 
@@ -43,6 +44,26 @@ export default async function BlogPost({
   return (
     <div className="mx-auto max-w-2xl px-6 pt-10 pb-16 flex flex-col justify-center overflow-hidden gap-5">
       <div>
+        <Link
+          href="/blog"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
+        >
+          <svg
+            className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Back to Blog
+        </Link>
+
         <article>
           <header className="mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-4">

@@ -22,21 +22,25 @@ export default function BlogPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 pt-5 lg:px-8">
-      <div className="space-y-6">
-        {blogPosts.map((post, index) => (
-          <div
+      <div className="divide-y divide-border">
+        {blogPosts.map((post) => (
+          <article
             key={post.slug}
-            className={`border-b pt-6 border-border pb-6 ${
-              index === 0 ? "border-t" : ""
-            }`}
+            className="py-8 transition-all -mx-4 px-4 rounded-lg"
           >
-            <BlogH1
-              title={post.title}
-              href={`/blog/${post.slug}`}
-              size="lg"
-              index={-1}
-            />
-          </div>
+            <div className="space-y-3">
+              <BlogH1
+                title={post.title}
+                href={`/blog/${post.slug}`}
+                size="lg"
+              />
+              {post.excerpt && (
+                <p className="text-muted-foreground leading-relaxed">
+                  {post.excerpt}
+                </p>
+              )}
+            </div>
+          </article>
         ))}
       </div>
     </div>

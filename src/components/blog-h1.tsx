@@ -11,7 +11,6 @@ interface BlogH1Props {
 
 export function BlogH1({
   title,
-  index,
   href,
   size = "sm",
   highlight = false,
@@ -27,9 +26,6 @@ export function BlogH1({
   return (
     <div className="group">
       {href ? <Link href={href}>{Heading}</Link> : Heading}
-      {index !== -1 && (
-        <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
-      )}
     </div>
   );
 }
