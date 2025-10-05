@@ -23,10 +23,12 @@ export default function BlogPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 pt-5 lg:px-8">
       <div className="space-y-6">
-        {blogPosts.map((post) => (
+        {blogPosts.map((post, index) => (
           <div
             key={post.slug}
-            className="border-b border-t pt-6 border-border pb-6"
+            className={`border-b pt-6 border-border pb-6 ${
+              index === 0 ? "border-t" : ""
+            }`}
           >
             <BlogH1
               title={post.title}
