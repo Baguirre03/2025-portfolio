@@ -5,6 +5,7 @@ import { Navigation } from "@/components/navigation";
 import { Suspense } from "react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,6 +48,7 @@ export default function RootLayout({
             <main className="min-h-screen">{children}</main>
           </Suspense>
         </ThemeProvider>
+        <Analytics></Analytics>
       </body>
     </html>
   );
