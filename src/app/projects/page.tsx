@@ -3,7 +3,6 @@
 import { ExternalLink, Github, Download } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
 const projects = [
   {
     title: "Google Calendar Events - Raycast Extension",
@@ -51,11 +50,8 @@ export default function ProjectsPage() {
     fetch("/api/raycast-installs")
       .then((res) => res.json())
       .then((data) => {
-        if (data.formatted) {
-          setRaycastInstalls(data.formatted);
-        }
-      })
-      .catch(() => setRaycastInstalls(null));
+        setRaycastInstalls(data.formatted);
+      });
   }, []);
 
   return (
