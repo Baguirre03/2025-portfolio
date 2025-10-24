@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   ChevronDown,
   Code,
@@ -21,6 +21,9 @@ export default function HomePage() {
   const [isToolsOpen, setIsToolsOpen] = useState(true);
   type RecentPost = { slug: string; title: string };
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
+  const [headerState, setHeaderState] = useState(0);
+
+  const headers = ["I build things that people actually want to use"];
 
   useEffect(() => {
     fetch("/api/recent-posts?limit=2")
@@ -29,12 +32,69 @@ export default function HomePage() {
       .catch(() => setRecentPosts([]));
   }, []);
 
+  const triggerConfetti = useCallback(() => {
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 9999,
+    };
+
+    function fire(particleRatio: number, opts: object) {
+      const confettiModule = (
+        window as unknown as { confetti?: (config: unknown) => void }
+      ).confetti;
+      if (confettiModule) {
+        confettiModule({
+          ...defaults,
+          ...opts,
+          particleCount: Math.floor(count * particleRatio),
+        });
+      }
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+    fire(0.2, {
+      spread: 60,
+    });
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  }, []);
+
+  const handleHeaderClick = useCallback(() => {
+    const nextState = (headerState + 1) % headers.length;
+    setHeaderState(nextState);
+
+    // Trigger confetti when cycling back to the first header
+    if (nextState === 0) {
+      triggerConfetti();
+    }
+  }, [headerState, headers.length, triggerConfetti]);
+
   return (
     <>
       <div className="mx-auto max-w-2xl px-6 pt-5 pb-16 flex flex-col justify-center overflow-hidden gap-5">
         <div>
-          <h1 className="text-4xl font-light tracking-tight text-foreground sm:text-5xl mb-8">
-            I build things that people actually want to use
+          <h1
+            onClick={handleHeaderClick}
+            className="text-4xl font-light tracking-tight text-foreground sm:text-5xl mb-8 cursor-pointer select-none"
+          >
+            {headers[headerState]}
           </h1>
 
           <div className="prose prose-lg max-w-none">

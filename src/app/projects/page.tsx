@@ -1,5 +1,8 @@
-import { ExternalLink, Github } from "lucide-react";
+"use client";
+
+import { ExternalLink, Github, Download } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const projects = [
   {
@@ -10,6 +13,7 @@ const projects = [
     github:
       "https://github.com/raycast/extensions/tree/6fd6ba36635a74edef87c06c5bd33049e697218e/extensions/google-calendar-quickadd/",
     live: "https://www.raycast.com/ben_aguirre/google-calendar-quickadd",
+    showInstalls: true,
   },
   {
     title: "Advent of Code 2024",
@@ -41,6 +45,19 @@ const projects = [
 ];
 
 export default function ProjectsPage() {
+  const [raycastInstalls, setRaycastInstalls] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/raycast-installs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.formatted) {
+          setRaycastInstalls(data.formatted);
+        }
+      })
+      .catch(() => setRaycastInstalls(null));
+  }, []);
+
   return (
     <div className="mx-auto max-w-4xl px-6 pt-5 lg:px-8">
       <div className="mb-12">
@@ -88,7 +105,7 @@ export default function ProjectsPage() {
               {project.description}
             </p>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
               {project.technologies.map((tech) => (
                 <span
                   key={tech}
@@ -97,6 +114,15 @@ export default function ProjectsPage() {
                   {tech}
                 </span>
               ))}
+              {project.showInstalls && raycastInstalls && (
+                <span
+                  onClick={() => window.open(project.live, "_blank")}
+                  className="hover:cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-primary/5 to-primary/10 text-primary font-semibold ring-1 ring-primary/20 hover:ring-primary/30 transition-all"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {raycastInstalls} Downloads
+                </span>
+              )}
             </div>
           </article>
         ))}
