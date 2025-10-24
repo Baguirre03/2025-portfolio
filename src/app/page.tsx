@@ -311,27 +311,27 @@ export default function HomePage() {
       <div className="fixed bottom-6 left-6 hidden flex-col gap-3 md:flex">
         <Link
           href="mailto:baguirre@luc.edu"
-          className="rounded-full bg-background/80 p-3 text-muted-foreground shadow-sm ring-1 ring-border transition-colors hover:text-foreground"
+          className="rounded-full bg-background/80 p-3 text-muted-foreground shadow-sm ring-1 ring-border transition-all hover:text-foreground hover:shadow-md"
         >
-          <Mail className="h-4 w-4" />
+          <Mail className="h-4 w-4 transition-transform hover:scale-110" />
           <span className="sr-only">Email Ben Aguirre</span>
         </Link>
         <Link
           href="https://www.linkedin.com/in/ben-aguirre"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-full bg-background/80 p-3 text-muted-foreground shadow-sm ring-1 ring-border transition-colors hover:text-foreground"
+          className="rounded-full bg-background/80 p-3 text-muted-foreground shadow-sm ring-1 ring-border transition-all hover:text-foreground hover:shadow-md"
         >
-          <Linkedin className="h-4 w-4" />
+          <Linkedin className="h-4 w-4 transition-transform hover:scale-110" />
           <span className="sr-only">LinkedIn</span>
         </Link>
         <Link
           href="https://github.com/Baguirre03"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-full bg-background/80 p-3 text-muted-foreground shadow-sm ring-1 ring-border transition-colors hover:text-foreground"
+          className="rounded-full bg-background/80 p-3 text-muted-foreground shadow-sm ring-1 ring-border transition-all hover:text-foreground hover:shadow-md"
         >
-          <Github className="h-4 w-4" />
+          <Github className="h-4 w-4 transition-transform hover:scale-110" />
           <span className="sr-only">GitHub</span>
         </Link>
       </div>

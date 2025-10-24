@@ -25,9 +25,11 @@ export function Navigation() {
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
         <Link
           href="/"
-          className="-m-1.5 p-1.5 text-xl font-semibold tracking-tight"
+          className="group -m-1.5 p-1.5 text-xl font-semibold tracking-tight transition-all duration-300 hover:tracking-wide"
         >
-          Ben Aguirre
+          <span className="bg-gradient-to-r from-foreground via-primary to-foreground bg-[length:200%_100%] bg-clip-text transition-all duration-500 group-hover:bg-[position:100%_0] group-hover:text-transparent">
+            Ben Aguirre
+          </span>
         </Link>
 
         <div className="hidden lg:flex lg:items-center lg:gap-x-10">
