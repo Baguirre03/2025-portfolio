@@ -3,17 +3,20 @@ title: Testing Programming Langauges
 date: 2025-10-05
 excerpt: Just seeing if my markdown is formatted correctly
 ---
+
 ### JavaScript
+
 ```js
-const hello = "hi"
+const hello = "hi";
 const testFunc = () => {
-	for (let i = 0; i < hello.length; i++) {
-		console.log("test!!")
-	}
-}
+  for (let i = 0; i < hello.length; i++) {
+    console.log("test!!");
+  }
+};
 ```
 
 ### Python
+
 ```python
 hello = "hi"
 def test_func():
@@ -22,6 +25,7 @@ def test_func():
 ```
 
 ### C++
+
 ```cpp
 #include <iostream>
 #include <string>
@@ -36,6 +40,7 @@ int main() {
 ```
 
 ### Java
+
 ```java
 public class Main {
     public static void main(String[] args) {
@@ -53,6 +58,7 @@ public class Main {
 ```
 
 ### Go
+
 ```go
 package main
 
@@ -71,6 +77,7 @@ func main() {
 ```
 
 ### Rust
+
 ```rust
 fn test_func() {
     let hello = "hi";

@@ -13,5 +13,12 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json(posts.map(({ slug, title }) => ({ slug, title })));
+  return NextResponse.json(
+    posts.map(({ slug, title, date, excerpt }) => ({
+      slug,
+      title,
+      date,
+      excerpt,
+    }))
+  );
 }
