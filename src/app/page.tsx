@@ -23,7 +23,7 @@ export default function HomePage() {
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
   const [headerState, setHeaderState] = useState(0);
 
-  const headers = ["I build things that people actually want to use"];
+  const headers = [""];
 
   useEffect(() => {
     fetch("/api/recent-posts?limit=2")
@@ -90,12 +90,12 @@ export default function HomePage() {
     <>
       <div className="mx-auto max-w-2xl px-6 pt-5 pb-16 flex flex-col justify-center overflow-hidden gap-5">
         <div>
-          <h1
+          {/* <h1
             onClick={handleHeaderClick}
             className="text-4xl font-light tracking-tight text-foreground sm:text-5xl mb-8 cursor-pointer select-none"
           >
             {headers[headerState]}
-          </h1>
+          </h1> */}
 
           <div className="prose prose-lg max-w-none">
             <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
