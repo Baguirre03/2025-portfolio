@@ -128,6 +128,29 @@ export default function HomePage() {
                   <li className="ml-2 group">
                     <div className="pb-2">
                       <span className="text-sm font-medium text-primary">
+                        Feb. 2025 - Present
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Image
+                          src="/images/pinterest.svg"
+                          alt="Pinterest logo"
+                          width={24}
+                          height={24}
+                          className="w-6 h-6 rounded"
+                        />
+                        <h4 className="text-lg font-semibold text-foreground">
+                          Pinterest | Software Engineer
+                        </h4>
+                      </div>
+                      <p className="text-muted-foreground text-base leading-relaxed">
+                        Full-time SWE - Continious Integration Team
+                      </p>
+                    </div>
+                  </li>
+                  {/* Experience 2 */}
+                  <li className="ml-2 group">
+                    <div className="pb-2">
+                      <span className="text-sm font-medium text-primary">
                         May 2025 - Aug. 2025
                       </span>
                       <div className="flex items-center gap-2 mt-1">
@@ -148,7 +171,7 @@ export default function HomePage() {
                       </p>
                     </div>
                   </li>
-                  {/* Experience 2 */}
+                  {/* Experience 3 */}
                   <li className="ml-2 group">
                     <div className="pb-2">
                       <span className="text-sm font-medium text-primary">
@@ -173,7 +196,7 @@ export default function HomePage() {
                       </p>
                     </div>
                   </li>
-                  {/* Experience 3 */}
+                  {/* Experience 4 */}
                   <li className="ml-2 group">
                     <div className="pb-2">
                       <span className="text-sm font-medium text-primary">
@@ -198,7 +221,7 @@ export default function HomePage() {
                       </p>
                     </div>
                   </li>
-                  {/* Experience 4 */}
+                  {/* Experience 5 */}
                   <li className="ml-2 group">
                     <div className="pb-2">
                       <span className="text-sm font-medium text-primary">
@@ -224,7 +247,7 @@ export default function HomePage() {
                       </p>
                     </div>
                   </li>
-                  {/* Experience 5 */}
+                  {/* Experience 6 */}
                   <li className="ml-2 group">
                     <div className="pb-2">
                       <span className="text-sm font-medium text-primary">
@@ -249,7 +272,7 @@ export default function HomePage() {
                       </p>
                     </div>
                   </li>
-                  {/* Experience 6 */}
+                  {/* Experience 7 */}
                   <li className="ml-2 group">
                     <div className="pb-2">
                       <span className="text-sm font-medium text-primary">
