@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronDown,
   Code,
@@ -12,18 +12,40 @@ import {
   Linkedin,
   Github,
   Mail,
+  BookOpen,
+  Film,
 } from "lucide-react";
 import { BlogH1 } from "@/components/blog-h1";
+
+type RecentPost = { slug: string; title: string };
+type Book = {
+  title: string;
+  author: string;
+  link: string;
+  imageUrl?: string;
+  readAt?: string;
+};
+type Movie = {
+  title: string;
+  year?: string;
+  link: string;
+  watchedDate?: string;
+  rating?: string;
+  imageUrl?: string;
+};
 
 export default function HomePage() {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isBlogOpen, setIsBlogOpen] = useState(true);
   const [isToolsOpen, setIsToolsOpen] = useState(true);
-  type RecentPost = { slug: string; title: string };
+  const [isMediaOpen, setIsMediaOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<"reading" | "movies">("reading");
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
-  const [headerState, setHeaderState] = useState(0);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  // const [headerState, setHeaderState] = useState(0);
 
-  const headers = [""];
+  // const headers = [""];
 
   useEffect(() => {
     fetch("/api/recent-posts?limit=2")
@@ -32,59 +54,73 @@ export default function HomePage() {
       .catch(() => setRecentPosts([]));
   }, []);
 
-  const triggerConfetti = useCallback(() => {
-    const count = 200;
-    const defaults = {
-      origin: { y: 0.7 },
-      zIndex: 9999,
-    };
-
-    function fire(particleRatio: number, opts: object) {
-      const confettiModule = (
-        window as unknown as { confetti?: (config: unknown) => void }
-      ).confetti;
-      if (confettiModule) {
-        confettiModule({
-          ...defaults,
-          ...opts,
-          particleCount: Math.floor(count * particleRatio),
-        });
-      }
-    }
-
-    fire(0.25, {
-      spread: 26,
-      startVelocity: 55,
-    });
-    fire(0.2, {
-      spread: 60,
-    });
-    fire(0.35, {
-      spread: 100,
-      decay: 0.91,
-      scalar: 0.8,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 25,
-      decay: 0.92,
-      scalar: 1.2,
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 45,
-    });
+  useEffect(() => {
+    fetch("/api/goodreads")
+      .then((r) => r.json())
+      .then((data) => setBooks(data.books || []))
+      .catch(() => setBooks([]));
   }, []);
 
-  const handleHeaderClick = useCallback(() => {
-    const nextState = (headerState + 1) % headers.length;
-    setHeaderState(nextState);
+  useEffect(() => {
+    fetch("/api/letterboxd")
+      .then((r) => r.json())
+      .then((data) => setMovies(data.movies || []))
+      .catch(() => setMovies([]));
+  }, []);
 
-    // Trigger confetti when cycling back to the first header
-    if (nextState === 0) {
-      triggerConfetti();
-    }
-  }, [headerState, headers.length, triggerConfetti]);
+  // const triggerConfetti = useCallback(() => {
+  //   const count = 200;
+  //   const defaults = {
+  //     origin: { y: 0.7 },
+  //     zIndex: 9999,
+  //   };
+
+  //   function fire(particleRatio: number, opts: object) {
+  //     const confettiModule = (
+  //       window as unknown as { confetti?: (config: unknown) => void }
+  //     ).confetti;
+  //     if (confettiModule) {
+  //       confettiModule({
+  //         ...defaults,
+  //         ...opts,
+  //         particleCount: Math.floor(count * particleRatio),
+  //       });
+  //     }
+  //   }
+
+  //   fire(0.25, {
+  //     spread: 26,
+  //     startVelocity: 55,
+  //   });
+  //   fire(0.2, {
+  //     spread: 60,
+  //   });
+  //   fire(0.35, {
+  //     spread: 100,
+  //     decay: 0.91,
+  //     scalar: 0.8,
+  //   });
+  //   fire(0.1, {
+  //     spread: 120,
+  //     startVelocity: 25,
+  //     decay: 0.92,
+  //     scalar: 1.2,
+  //   });
+  //   fire(0.1, {
+  //     spread: 120,
+  //     startVelocity: 45,
+  //   });
+  // }, []);
+
+  // const handleHeaderClick = useCallback(() => {
+  //   const nextState = (headerState + 1) % headers.length;
+  //   setHeaderState(nextState);
+
+  //   // Trigger confetti when cycling back to the first header
+  //   if (nextState === 0) {
+  //     triggerConfetti();
+  //   }
+  // }, [headerState, headers.length, triggerConfetti]);
 
   return (
     <>
@@ -325,6 +361,201 @@ export default function HomePage() {
                   index={index == recentPosts.length - 1 ? -1 : index}
                 />
               ))}
+            </div>
+          </div>
+        </div>
+        <div>
+          <button
+            onClick={() => setIsMediaOpen(!isMediaOpen)}
+            className="flex items-center gap-2 text-3xl font-medium tracking-tight text-foreground hover:text-primary transition-colors mb-4 group cursor-pointer"
+          >
+            Recent Media
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isMediaOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isMediaOpen ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="ml-2 pb-3">
+              <div className="flex gap-4 mb-4 border-b border-border">
+                <button
+                  onClick={() => setActiveTab("reading")}
+                  className={`pb-2 px-1 text-base font-medium transition-colors ${
+                    activeTab === "reading"
+                      ? "text-foreground border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    Recent Books
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab("movies")}
+                  className={`pb-2 px-1 text-base font-medium transition-colors ${
+                    activeTab === "movies"
+                      ? "text-foreground border-b-2 border-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Film className="w-4 h-4" />
+                    Recent Movies
+                  </div>
+                </button>
+              </div>
+
+              {/* Account links */}
+              <div className="mb-4 text-sm text-muted-foreground">
+                {activeTab === "reading" && (
+                  <p>
+                    from{" "}
+                    <Link
+                      href="https://www.goodreads.com/user/show/189030126-benjamin-aguirre"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Goodreads
+                    </Link>
+                  </p>
+                )}
+                {activeTab === "movies" && (
+                  <p>
+                    from{" "}
+                    <Link
+                      href="https://letterboxd.com/baguirre3/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Letterboxd
+                    </Link>
+                  </p>
+                )}
+              </div>
+
+              {/* Tab content */}
+              {activeTab === "reading" && (
+                <div className="space-y-3">
+                  {books.length > 0 ? (
+                    books.map((book, index) => (
+                      <div
+                        key={index}
+                        className="group border-b border-border group-hover:border-primary/30 transition-colors pb-3"
+                      >
+                        <Link
+                          href={book.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <div className="flex items-start gap-3">
+                            {book.imageUrl && (
+                              <Image
+                                src={book.imageUrl}
+                                alt={book.title}
+                                width={48}
+                                height={72}
+                                className="rounded shrink-0"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors">
+                                {book.title}
+                              </h3>
+                              <p className="text-muted-foreground text-sm mt-1">
+                                by {book.author}
+                              </p>
+                              {book.readAt && (
+                                <p className="text-muted-foreground text-sm mt-1">
+                                  Finished{" "}
+                                  {new Date(book.readAt).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    },
+                                  )}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No recent books found.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "movies" && (
+                <div className="space-y-3">
+                  {movies.length > 0 ? (
+                    movies.map((movie, index) => (
+                      <div
+                        key={index}
+                        className="group border-b border-border group-hover:border-primary/30 transition-colors pb-3"
+                      >
+                        <Link
+                          href={movie.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <div className="flex items-start gap-3">
+                            {movie.imageUrl && (
+                              <Image
+                                src={movie.imageUrl}
+                                alt={movie.title}
+                                width={48}
+                                height={72}
+                                className="rounded shrink-0"
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors">
+                                  {movie.title}
+                                </h3>
+                                {movie.year && (
+                                  <span className="text-muted-foreground text-sm">
+                                    ({movie.year})
+                                  </span>
+                                )}
+                                {movie.rating && (
+                                  <span className="text-primary text-sm">
+                                    {movie.rating}
+                                  </span>
+                                )}
+                              </div>
+                              {movie.watchedDate && (
+                                <p className="text-muted-foreground text-sm mt-1">
+                                  Watched {movie.watchedDate}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No recent movies found.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
