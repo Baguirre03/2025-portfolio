@@ -4,40 +4,40 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Catppuccin Latte (Light) Theme - Default */
-  --background: #eff1f5; /* Base */
-  --foreground: #4c4f69; /* Text */
-  --card: #e6e9ef; /* Surface0 */
-  --card-foreground: #4c4f69; /* Text */
-  --popover: #eff1f5; /* Base */
-  --popover-foreground: #4c4f69; /* Text */
-  --primary: #1e66f5; /* Blue */
-  --primary-foreground: #eff1f5; /* Base */
-  --secondary: #acb0be; /* Surface2 */
-  --secondary-foreground: #4c4f69; /* Text */
-  --muted: #e6e9ef; /* Surface0 */
-  --muted-foreground: #6c6f85; /* Subtext1 */
-  --accent: #ea76cb; /* Pink */
-  --accent-foreground: #eff1f5; /* Base */
-  --destructive: #d20f39; /* Red */
-  --destructive-foreground: #eff1f5; /* Base */
-  --border: #ccd0da; /* Surface1 */
-  --input: #dce0e8; /* Surface0 */
-  --ring: #1e66f5; /* Blue */
-  --chart-1: #1e66f5; /* Blue */
-  --chart-2: #40a02b; /* Green */
-  --chart-3: #ea76cb; /* Pink */
-  --chart-4: #8839ef; /* Mauve */
-  --chart-5: #fe640b; /* Peach */
+  /* Simple White and Black Theme - Default */
+  --background: #ffffff; /* White */
+  --foreground: #000000; /* Black */
+  --card: #fafafa; /* Off-white */
+  --card-foreground: #000000; /* Black */
+  --popover: #ffffff; /* White */
+  --popover-foreground: #000000; /* Black */
+  --primary: #000000; /* Black */
+  --primary-foreground: #ffffff; /* White */
+  --secondary: #808080; /* Gray */
+  --secondary-foreground: #000000; /* Black */
+  --muted: #f5f5f5; /* Light gray */
+  --muted-foreground: #666666; /* Dark gray */
+  --accent: #000000; /* Black */
+  --accent-foreground: #ffffff; /* White */
+  --destructive: #dc2626; /* Red */
+  --destructive-foreground: #ffffff; /* White */
+  --border: #e5e5e5; /* Light gray */
+  --input: #ffffff; /* White */
+  --ring: #000000; /* Black */
+  --chart-1: #000000; /* Black */
+  --chart-2: #404040; /* Dark gray */
+  --chart-3: #808080; /* Gray */
+  --chart-4: #a0a0a0; /* Light gray */
+  --chart-5: #c0c0c0; /* Lighter gray */
   --radius: 0.5rem;
-  --sidebar: #e6e9ef; /* Surface0 */
-  --sidebar-foreground: #4c4f69; /* Text */
-  --sidebar-primary: #1e66f5; /* Blue */
-  --sidebar-primary-foreground: #eff1f5; /* Base */
-  --sidebar-accent: #ea76cb; /* Pink */
-  --sidebar-accent-foreground: #eff1f5; /* Base */
-  --sidebar-border: #ccd0da; /* Surface1 */
-  --sidebar-ring: #1e66f5; /* Blue */
+  --sidebar: #fafafa; /* Off-white */
+  --sidebar-foreground: #000000; /* Black */
+  --sidebar-primary: #000000; /* Black */
+  --sidebar-primary-foreground: #ffffff; /* White */
+  --sidebar-accent: #000000; /* Black */
+  --sidebar-accent-foreground: #ffffff; /* White */
+  --sidebar-border: #e5e5e5; /* Light gray */
+  --sidebar-ring: #000000; /* Black */
 }
 
 @media (prefers-color-scheme: dark) {

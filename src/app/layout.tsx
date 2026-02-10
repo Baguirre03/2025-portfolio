@@ -1,6 +1,6 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Navigation } from "@/components/navigation";
 import { Suspense } from "react";
 import Script from "next/script";
@@ -8,12 +8,13 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Analytics } from "@vercel/analytics/next";
 
-const geistSans = Geist({
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
@@ -22,7 +23,6 @@ export const metadata: Metadata = {
   title: "Ben Aguirre",
   description:
     "Ben Aguirre's portfolio highlighting Loyola Chicago marketer-turned-software builder, featuring projects, photography, writing, and open source work",
-  // No need to set icons here anymore - handled by the client component
 };
 
 export default function RootLayout({
@@ -33,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`font-sans ${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`font-sans ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased bg-background text-foreground`}
       >
         <head>
           <link rel="icon" href="/images/code-3.png" />

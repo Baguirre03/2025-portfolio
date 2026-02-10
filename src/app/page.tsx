@@ -99,14 +99,10 @@ export default function HomePage() {
 
           <div className="prose prose-lg max-w-none">
             <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
-              About Me
+              Ben A
             </h2>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              A current senior at Loyola University Chicago with a major in
-              marketing and a minor in computer science. Graduating this
-              December, 2025. I am a strong believer in the power of open source
-              projects and tools, and I am constantly seeking new ways to learn
-              and stay updated with the latest technologies.
+            <p className="text-muted-foreground text-base leading-relaxed">
+              Software Engineer @ Pinterest, building, learning, and living!
             </p>
             <div className="mt-8">
               <button
@@ -297,7 +293,7 @@ export default function HomePage() {
               isBlogOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
             }`}
           >
-            <div className="space-y-3 ml-2">
+            <div className="space-y-3 ml-2 pb-3">
               {recentPosts.map((post, index) => (
                 <BlogH1
                   key={post.slug}
@@ -327,41 +323,37 @@ export default function HomePage() {
             }`}
           >
             <div className="space-y-3 ml-2">
-              <div className="group">
+              <div className="group border-b border-border group-hover:border-primary/30 transition-colors pb-3">
                 <div className="flex items-center gap-2">
                   <Code className="w-4 h-4 text-primary" />
-                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2">
                     IDE: Cursor
                   </h3>
                 </div>
-                <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
               </div>
-              <div className="group">
+              <div className="group border-b border-border group-hover:border-primary/30 transition-colors pb-3">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary" />
-                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2">
                     Note taking: Obsidian
                   </h3>
                 </div>
-                <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
               </div>
-              <div className="group">
+              <div className="group border-b border-border group-hover:border-primary/30 transition-colors pb-3">
                 <div className="flex items-center gap-2">
                   <Terminal className="w-4 h-4 text-primary" />
-                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2">
                     Terminal: Ghostty
                   </h3>
                 </div>
-                <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
               </div>
-              <div className="group">
+              <div className="group border-b border-border group-hover:border-primary/30 transition-colors pb-3">
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-primary" />
-                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors cursor-pointer py-2">
+                  <h3 className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2">
                     Browser: Chrome
                   </h3>
                 </div>
-                <div className="w-full h-px bg-border group-hover:bg-primary/30 transition-colors"></div>
               </div>
             </div>
           </div>
