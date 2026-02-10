@@ -5,6 +5,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 const projects = [
   {
+    title: "Advent of Code 2025",
+    description: "My solutions to AOC 2025",
+    technologies: ["JavaScript", "C++", "Python"],
+    github: "https://github.com/Baguirre03/advent-of-code-2025",
+  },
+  {
     title: "Google Calendar Events - Raycast Extension",
     description:
       "Raycast extension that creates events using natural language for your Google Calendar in Raycast",
@@ -16,7 +22,7 @@ const projects = [
   },
   {
     title: "Advent of Code 2024",
-    description: "My solutions to Advent of Code 2024 using JavaScript",
+    description: "My solutions to Advent of Code 2024",
     technologies: ["JavaScript"],
     github: "https://github.com/Baguirre03/Advent_of_code_2024",
   },
@@ -29,7 +35,7 @@ const projects = [
   },
   {
     title: "Advent of Code 2023",
-    description: "My solutions to Advent of Code 2023 using JavaScript",
+    description: "My solutions to Advent of Code 2023",
     technologies: ["JavaScript"],
     github: "https://github.com/Baguirre03/advent-of-code",
   },
@@ -57,10 +63,9 @@ export default function ProjectsPage() {
   return (
     <div className="mx-auto max-w-4xl px-6 pt-5 lg:px-8">
       <div className="mb-12">
-        <h1 className="text-3xl font-medium text-foreground mb-2">Projects</h1>
-        <p className="text-muted-foreground">
-          A collection of things I&apos;ve built
-        </p>
+        <h1 className="text-3xl font-medium text-foreground mb-2">
+          Projects
+        </h1>{" "}
       </div>
 
       <div className="space-y-8">

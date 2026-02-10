@@ -102,7 +102,7 @@ export default function HomePage() {
               Ben A
             </h2>
             <p className="text-muted-foreground text-base leading-relaxed">
-              Software Engineer @ Pinterest, building, learning, and living!
+              Building, learning, and living!
             </p>
             <div className="mt-8">
               <button
@@ -167,7 +167,7 @@ export default function HomePage() {
                       </div>
                       <p className="text-muted-foreground text-base leading-relaxed">
                         Data Engineering Organization • Built internal chatbot
-                        tool using Langchain, Python, TypeScript, and React.
+                        tool using Langchain, Python, TypeScript, and React
                       </p>
                     </div>
                   </li>
@@ -192,7 +192,7 @@ export default function HomePage() {
                       <p className="text-muted-foreground text-base leading-relaxed">
                         Contributed to The Odin Project&apos;s curriculum by
                         implementing lesson updates, improving docs, and
-                        reviewing PRs to support 150,000+ learners.
+                        reviewing PRs to support 150,000+ learners
                       </p>
                     </div>
                   </li>
@@ -217,7 +217,7 @@ export default function HomePage() {
                       <p className="text-muted-foreground text-base leading-relaxed">
                         Bloomberg X ColorStack mentorship program • Collaborated
                         with a Bloomberg Engineer on an open-source development
-                        feature for ColorStack&apos;s Oyster project.
+                        feature for ColorStack&apos;s Oyster project
                       </p>
                     </div>
                   </li>
@@ -243,7 +243,7 @@ export default function HomePage() {
                         Wrote docs for the &quot;Impossible Alone&quot;
                         campaign, created inclusive language guidance, and
                         improved brand visibility through optimized search
-                        titles.
+                        titles
                       </p>
                     </div>
                   </li>
@@ -268,7 +268,7 @@ export default function HomePage() {
                       <p className="text-muted-foreground text-base leading-relaxed">
                         Conducted in-depth SEO research to improve keyword
                         rankings for new and existing content. Led the launch of
-                        a new sustainability product.
+                        a new sustainability product
                       </p>
                     </div>
                   </li>
@@ -290,7 +290,7 @@ export default function HomePage() {
                         Produced 11 Instagram reels (205k+ views), grew
                         Instagram to 5,800 followers, and built relationships
                         with 80+ potential clients through social media
-                        engagement.
+                        engagement
                       </p>
                     </div>
                   </li>
