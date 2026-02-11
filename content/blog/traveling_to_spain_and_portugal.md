@@ -32,18 +32,24 @@ As you can see there needs to be a way to get to each city, especially getting f
 **NYC -> Madrid**
 - Delta flight
 - January 14th
+
 **Madrid -> Seville**
 - [Renfe](https://www.renfe.com/es/en) high speed rail
 - January 18th
+
 **Seville -> Lisbon**
 - [Ryanair](ryanair.com/us/en/) flight
 - January 22nd
+
 **Lisbon -> Porto**
 - [Comboios De Portugal](https://www.cp.pt/passageiros/en) high speed rail
 - January 26th
+
 **Porto -> Madrid**
 - [Iberia](https://www.iberia.com/us/) flight to Madrid
 - January 29th
+
 **Madird -> NYC**
 - Delta flight
 - January 30th
+
