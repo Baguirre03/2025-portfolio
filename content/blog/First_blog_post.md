@@ -1,7 +1,7 @@
 ---
 title: Connecting my Blog to Obsidian
 date: 2025-09-24
-excerpt: what is this about?
+excerpt: How I set this blog up with Obsidian
 ---
 # My Blog Configuration
 
