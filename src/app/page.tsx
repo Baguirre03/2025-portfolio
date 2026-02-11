@@ -12,16 +12,26 @@ import {
   Linkedin,
   Github,
   Mail,
+  Music2,
 } from "lucide-react";
 import { BlogH1 } from "@/components/blog-h1";
 
 type RecentPost = { slug: string; title: string };
+type NowPlaying = {
+  isPlaying: boolean;
+  title: string | null;
+  artist: string | null;
+  album: string | null;
+  url: string | null;
+  imageUrl: string | null;
+} | null;
 
 export default function HomePage() {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isBlogOpen, setIsBlogOpen] = useState(true);
   const [isToolsOpen, setIsToolsOpen] = useState(true);
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying>(null);
   // const [headerState, setHeaderState] = useState(0);
 
   // const headers = [""];
@@ -31,6 +41,13 @@ export default function HomePage() {
       .then((r) => r.json())
       .then(setRecentPosts)
       .catch(() => setRecentPosts([]));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/spotify/now-playing")
+      .then((r) => r.json())
+      .then(setNowPlaying)
+      .catch(() => setNowPlaying(null));
   }, []);
 
   // const triggerConfetti = useCallback(() => {
@@ -105,6 +122,43 @@ export default function HomePage() {
             <p className="text-muted-foreground text-base leading-relaxed">
               Building, learning, and living!
             </p>
+
+            {nowPlaying?.title && (
+              <div className="mt-6 rounded-lg border border-border bg-muted/30 p-4">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+                  <Music2 className="w-4 h-4 text-[#1DB954]" />
+                  {nowPlaying.isPlaying
+                    ? "Now playing on Spotify"
+                    : "Recently played on Spotify"}
+                </div>
+                <Link
+                  href={nowPlaying.url ?? "https://open.spotify.com"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 group"
+                >
+                  {nowPlaying.imageUrl && (
+                    <Image
+                      src={nowPlaying.imageUrl}
+                      alt={nowPlaying.title}
+                      width={56}
+                      height={56}
+                      className="rounded shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                      {nowPlaying.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {nowPlaying.artist}
+                      {nowPlaying.album ? ` · ${nowPlaying.album}` : ""}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            )}
+
             <div className="mt-8">
               <button
                 onClick={() => setIsTimelineOpen(!isTimelineOpen)}

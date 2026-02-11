@@ -1,12 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  vscDarkPlus,
-  nightOwl,
-  oneDark,
-} from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+
+function normalizeBlogImageSrc(src: string | undefined): string {
+  if (!src) return "";
+  const trimmed = src.trim();
+  if (trimmed.startsWith("./images/"))
+    return "/blog/images/" + trimmed.slice("./images/".length);
+  if (trimmed.startsWith("images/"))
+    return "/blog/images/" + trimmed.slice("images/".length);
+  if (trimmed.startsWith("/blog/images/")) return trimmed;
+  return src;
+}
+
 interface MarkdownRendererProps {
   content: string;
 }
@@ -16,6 +25,24 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     <div className="prose prose-lg max-w-none">
       <ReactMarkdown
         components={{
+          img: ({ src, alt }) => {
+            const resolved = normalizeBlogImageSrc(
+              typeof src === "string" ? src : undefined,
+            );
+            if (!resolved) return null;
+            const altText = typeof alt === "string" ? alt : "";
+            return (
+              <span className="block my-6">
+                <Image
+                  src={resolved}
+                  alt={altText}
+                  width={800}
+                  height={500}
+                  className="rounded-lg w-full h-auto object-contain"
+                />
+              </span>
+            );
+          },
           h1: () => null,
           h2: ({ children }) => (
             <h2 className="text-2xl font-semibold mb-3 mt-6">{children}</h2>
