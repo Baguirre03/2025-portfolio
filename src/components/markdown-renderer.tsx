@@ -1,9 +1,90 @@
 "use client";
 
 import Image from "next/image";
+import React, { ReactNode, isValidElement } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import {
+  Info,
+  Lightbulb,
+  TriangleAlert,
+  CircleAlert,
+  AlertOctagon,
+  Code2,
+  Quote,
+} from "lucide-react";
+
+const CALLOUT_MATCH =
+  /^\[!(Note|Tip|Warning|Important|Caution|Example|Quote)\]\s*(.*)$/i;
+
+type CalloutType =
+  | "note"
+  | "tip"
+  | "warning"
+  | "important"
+  | "caution"
+  | "example"
+  | "quote";
+
+const CALLOUT_CONFIG: Record<
+  CalloutType,
+  { label: string; Icon: typeof Info; className: string }
+> = {
+  note: {
+    label: "Note",
+    Icon: Info,
+    className:
+      "border-l-4 border-blue-500 bg-blue-500/10 dark:bg-blue-500/20 text-blue-800 dark:text-blue-200",
+  },
+  tip: {
+    label: "Tip",
+    Icon: Lightbulb,
+    className:
+      "border-l-4 border-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200",
+  },
+  warning: {
+    label: "Warning",
+    Icon: TriangleAlert,
+    className:
+      "border-l-4 border-amber-500 bg-amber-500/10 dark:bg-amber-500/20 text-amber-800 dark:text-amber-200",
+  },
+  important: {
+    label: "Important",
+    Icon: CircleAlert,
+    className:
+      "border-l-4 border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-800 dark:text-red-200",
+  },
+  caution: {
+    label: "Caution",
+    Icon: AlertOctagon,
+    className:
+      "border-l-4 border-orange-500 bg-orange-500/10 dark:bg-orange-500/20 text-orange-800 dark:text-orange-200",
+  },
+  example: {
+    label: "Example",
+    Icon: Code2,
+    className:
+      "border-l-4 border-violet-500 bg-violet-500/10 dark:bg-violet-500/20 text-violet-800 dark:text-violet-200",
+  },
+  quote: {
+    label: "Quote",
+    Icon: Quote,
+    className:
+      "border-l-4 border-gray-500 bg-gray-500/10 dark:bg-gray-500/20 text-gray-700 dark:text-gray-300",
+  },
+};
+
+function getFirstChildText(node: ReactNode): string {
+  if (node == null) return "";
+  if (typeof node === "string") return node.trim();
+  if (Array.isArray(node)) return getFirstChildText(node[0]);
+  if (isValidElement(node)) {
+    const props = node.props as { children?: ReactNode };
+    if (props.children != null) return getFirstChildText(props.children);
+  }
+  return "";
+}
 
 function normalizeBlogImageSrc(src: string | undefined): string {
   if (!src) return "";
@@ -100,11 +181,42 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             );
           },
           pre: ({ children }) => <div className="mb-4">{children}</div>,
-          blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-gray-300 pl-4 italic mb-4">
-              {children}
-            </blockquote>
-          ),
+          blockquote: ({ children }) => {
+            const arr = React.Children.toArray(children);
+            const firstText = getFirstChildText(arr[0]);
+            const match = firstText.match(CALLOUT_MATCH);
+            if (match) {
+              const type = match[1].toLowerCase() as CalloutType;
+              const config = CALLOUT_CONFIG[type];
+              const inlineContent = match[2]?.trim() ?? "";
+              if (config) {
+                const { label, Icon, className } = config;
+                const bodyChildren = arr.slice(1);
+                return (
+                  <div
+                    className={`rounded-r-lg pl-4 pr-4 py-3 mb-4 not-italic ${className}`}
+                    role="note"
+                  >
+                    <div className="flex items-center gap-2 font-semibold mb-2">
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span>{label}</span>
+                    </div>
+                    <div className="[&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2">
+                      {inlineContent ? (
+                        <p className="mb-2 last:mb-0">{inlineContent}</p>
+                      ) : null}
+                      {bodyChildren}
+                    </div>
+                  </div>
+                );
+              }
+            }
+            return (
+              <blockquote className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic mb-4 text-muted-foreground">
+                {children}
+              </blockquote>
+            );
+          },
         }}
       >
         {content}
