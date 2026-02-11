@@ -26,3 +26,24 @@ Madrid -> Seville -> Lisbon -> Porto. Four amazing cities within 16 days.
 
 ![My Route](images/traveling_to_spain_and_portugal/Screenshot%202026-02-10%20at%2010.30.00%20PM.png)
 
+### Transportation
+As you can see there needs to be a way to get to each city, especially getting from Spain to Portugal (as I hinted above). Luckily Europe has an extensive train network which makes everything so much easier.
+
+**NYC -> Madrid**
+- Delta flight
+- January 14th
+**Madrid -> Seville**
+- [Renfe](https://www.renfe.com/es/en) high speed rail
+- January 18th
+**Seville -> Lisbon**
+- [Ryanair](ryanair.com/us/en/) flight
+- January 22nd
+**Lisbon -> Porto**
+- [Comboios De Portugal](https://www.cp.pt/passageiros/en) high speed rail
+- January 26th
+**Porto -> Madrid**
+- [Iberia](https://www.iberia.com/us/) flight to Madrid
+- January 29th
+**Madird -> NYC**
+- Delta flight
+- January 30th
