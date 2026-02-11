@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Projects", href: "/projects" },
+  { name: "Media", href: "/media" },
   { name: "Blog", href: "/blog" },
   { name: "Photography", href: "/photography" },
 ];
@@ -41,7 +42,7 @@ export function Navigation() {
                 "text-sm font-medium leading-6 transition-colors hover:text-accent",
                 pathname === item.href
                   ? "text-foreground"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {item.name}
@@ -77,7 +78,7 @@ export function Navigation() {
                   "block rounded-lg px-3 py-2 text-base font-semibold leading-7 transition-colors hover:bg-muted",
                   pathname === item.href
                     ? "text-foreground"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground",
                 )}
                 onClick={() => setMobileMenuOpen(false)}
               >

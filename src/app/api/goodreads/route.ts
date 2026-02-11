@@ -8,7 +8,7 @@ interface GoodreadsBook {
   readAt?: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const goodreadsUserId = process.env.GOODREADS_USER_ID;
     const goodreadsUsername = process.env.GOODREADS_USERNAME;
@@ -34,18 +34,20 @@ export async function GET() {
     }
 
     const xmlText = await response.text();
-    const books = parseGoodreadsRSS(xmlText)
-      .sort((a, b) => {
-        // Sort by readAt date, most recent first
-        if (!a.readAt && !b.readAt) return 0;
-        if (!a.readAt) return 1;
-        if (!b.readAt) return -1;
-        return new Date(b.readAt).getTime() - new Date(a.readAt).getTime();
-      })
-      .slice(0, 10);
+    const limitParam = new URL(request.url).searchParams.get("limit");
+    const limit = limitParam
+      ? Math.min(parseInt(limitParam, 10) || 0, 500)
+      : undefined;
+    const books = parseGoodreadsRSS(xmlText).sort((a, b) => {
+      if (!a.readAt && !b.readAt) return 0;
+      if (!a.readAt) return 1;
+      if (!b.readAt) return -1;
+      return new Date(b.readAt).getTime() - new Date(a.readAt).getTime();
+    });
+    const result = limit != null ? books.slice(0, limit) : books;
 
     return NextResponse.json(
-      { books },
+      { books: result },
       {
         headers: {
           "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=300",

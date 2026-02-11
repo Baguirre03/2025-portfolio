@@ -9,7 +9,7 @@ interface LetterboxdMovie {
   imageUrl?: string;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const letterboxdUsername = process.env.LETTERBOXD_USERNAME;
 
@@ -36,10 +36,12 @@ export async function GET() {
 
     const xmlText = await response.text();
     const movies = parseLetterboxdRSS(xmlText);
+    const limitParam = new URL(request.url).searchParams.get("limit");
+    const limit = limitParam ? Math.min(parseInt(limitParam, 10) || 0, 500) : undefined;
+    const result = limit != null ? movies.slice(0, limit) : movies;
 
-    // Return only recent movies (last 10)
     return NextResponse.json(
-      { movies: movies.slice(0, 10) },
+      { movies: result },
       {
         headers: {
           "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=300",
