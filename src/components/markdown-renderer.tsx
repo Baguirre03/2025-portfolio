@@ -97,6 +97,25 @@ function normalizeBlogImageSrc(src: string | undefined): string {
   return src;
 }
 
+/** Replace arrow-like text with Unicode arrows, but not inside fenced code blocks. */
+function replaceArrows(content: string): string {
+  const parts = content.split(/(```[\s\S]*?```)/g);
+  return parts
+    .map((part) => {
+      if (part.startsWith("```")) return part;
+      return part
+        .replace(/<==>/g, "⇔")
+        .replace(/-->/g, "→")
+        .replace(/->/g, "→")
+        .replace(/<--/g, "←")
+        .replace(/<-/g, "←")
+        .replace(/=>/g, "⇒")
+        .replace(/<=/g, "⇐")
+        .replace(/<->/g, "↔");
+    })
+    .join("");
+}
+
 interface MarkdownRendererProps {
   content: string;
 }
@@ -219,7 +238,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           },
         }}
       >
-        {content}
+        {replaceArrows(content)}
       </ReactMarkdown>
     </div>
   );
