@@ -1,7 +1,7 @@
 pipeline {
     agent any
 
-    environement {
+    environment {
         NODE_ENV = 'production'
     }
 
