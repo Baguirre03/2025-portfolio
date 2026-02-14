@@ -1,7 +1,9 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { Photo } from "./types";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
 // Browser client: keeps session in cookies compatible with the server client
 export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
