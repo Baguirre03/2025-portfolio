@@ -41,7 +41,7 @@ export default function HomePage() {
             </h2>
             <p className="text-muted-foreground text-base leading-relaxed">
               Building, learning, and living!<br></br> You should check out my
-              favorite tab:{" "}
+              favorite pages:{" "}
               <Link
                 href="/photography"
                 className="text-primary hover:text-primary/80 transition-colors"
