@@ -20,30 +20,44 @@ export async function GET(request: Request) {
       );
     }
 
-    const rssUrl = `https://www.goodreads.com/review/list_rss/${goodreadsUserId}-${goodreadsUsername}`;
+    const baseUrl = `https://www.goodreads.com/review/list_rss/${goodreadsUserId}-${goodreadsUsername}`;
+    const fetchOpts = {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      next: { revalidate: 3600 } as const,
+    };
 
-    const response = await fetch(rssUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
-      next: { revalidate: 3600 },
-    });
+    // Fetch both "currently reading" and "read" shelves
+    const [currentRes, readRes] = await Promise.all([
+      fetch(`${baseUrl}?shelf=currently-reading`, fetchOpts),
+      fetch(`${baseUrl}?shelf=read`, fetchOpts),
+    ]);
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Goodreads RSS: ${response.statusText}`);
+    if (!readRes.ok) {
+      throw new Error(`Failed to fetch Goodreads RSS: ${readRes.statusText}`);
     }
 
-    const xmlText = await response.text();
+    const currentlyReading = currentRes.ok
+      ? parseGoodreadsRSS(await currentRes.text()).map((b) => ({
+          ...b,
+          readAt: undefined,
+        }))
+      : [];
+    const read = parseGoodreadsRSS(await readRes.text());
+
+    const books = [
+      ...currentlyReading,
+      ...read.sort((a, b) => {
+        if (!a.readAt && !b.readAt) return 0;
+        if (!a.readAt) return 1;
+        if (!b.readAt) return -1;
+        return new Date(b.readAt).getTime() - new Date(a.readAt).getTime();
+      }),
+    ];
+
     const limitParam = new URL(request.url).searchParams.get("limit");
     const limit = limitParam
       ? Math.min(parseInt(limitParam, 10) || 0, 500)
       : undefined;
-    const books = parseGoodreadsRSS(xmlText).sort((a, b) => {
-      if (!a.readAt && !b.readAt) return 0;
-      if (!a.readAt) return 1;
-      if (!b.readAt) return -1;
-      return new Date(b.readAt).getTime() - new Date(a.readAt).getTime();
-    });
     const result = limit != null ? books.slice(0, limit) : books;
 
     return NextResponse.json(

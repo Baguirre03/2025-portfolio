@@ -130,72 +130,134 @@ export default function MediaPage() {
         </button>
       </div>
 
-      {activeTab === "books" && (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            from{" "}
-            <Link
-              href={GOODREADS_PROFILE}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline inline-flex items-center gap-1"
-            >
-              Goodreads <ExternalLink className="w-3 h-3" />
-            </Link>
-          </p>
-          {booksLoading ? (
-            <p className="text-muted-foreground">Loading books…</p>
-          ) : books.length > 0 ? (
-            <ul className="space-y-3">
-              {books.map((book, index) => (
-                <li
-                  key={`${book.link}-${index}`}
-                  className="group border-b border-border pb-3"
+      {activeTab === "books" &&
+        (() => {
+          const currentlyReading = books.filter((b) => !b.readAt);
+          const finished = books.filter((b) => b.readAt);
+          return (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                from{" "}
+                <Link
+                  href={GOODREADS_PROFILE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center gap-1"
                 >
-                  <Link
-                    href={book.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
-                    <div className="flex items-start gap-3">
-                      {book.imageUrl && (
-                        <Image
-                          src={book.imageUrl}
-                          alt={book.title}
-                          width={48}
-                          height={72}
-                          className="rounded shrink-0"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
-                          {book.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm mt-1">
-                          by {book.author}
-                        </p>
-                        {book.readAt && (
-                          <p className="text-muted-foreground text-sm mt-1">
-                            Finished{" "}
-                            {new Date(book.readAt).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </p>
-                        )}
-                      </div>
+                  Goodreads <ExternalLink className="w-3 h-3" />
+                </Link>
+              </p>
+              {booksLoading ? (
+                <p className="text-muted-foreground">Loading books…</p>
+              ) : books.length > 0 ? (
+                <>
+                  {currentlyReading.length > 0 && (
+                    <div className="mb-6">
+                      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                        Currently Reading
+                      </h2>
+                      <ul className="space-y-3">
+                        {currentlyReading.map((book, index) => (
+                          <li
+                            key={`reading-${book.link}-${index}`}
+                            className="group border-b border-border pb-3"
+                          >
+                            <Link
+                              href={book.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              <div className="flex items-start gap-3">
+                                {book.imageUrl && (
+                                  <Image
+                                    src={book.imageUrl}
+                                    alt={book.title}
+                                    width={48}
+                                    height={72}
+                                    className="rounded shrink-0"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
+                                    {book.title}
+                                  </h3>
+                                  <p className="text-muted-foreground text-sm mt-1">
+                                    by {book.author}
+                                  </p>
+                                </div>
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-muted-foreground">No books found.</p>
-          )}
-        </div>
-      )}
+                  )}
+
+                  {finished.length > 0 && (
+                    <div>
+                      {currentlyReading.length > 0 && (
+                        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                          Finished
+                        </h2>
+                      )}
+                      <ul className="space-y-3">
+                        {finished.map((book, index) => (
+                          <li
+                            key={`${book.link}-${index}`}
+                            className="group border-b border-border pb-3"
+                          >
+                            <Link
+                              href={book.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              <div className="flex items-start gap-3">
+                                {book.imageUrl && (
+                                  <Image
+                                    src={book.imageUrl}
+                                    alt={book.title}
+                                    width={48}
+                                    height={72}
+                                    className="rounded shrink-0"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
+                                    {book.title}
+                                  </h3>
+                                  <p className="text-muted-foreground text-sm mt-1">
+                                    by {book.author}
+                                  </p>
+                                  {book.readAt && (
+                                    <p className="text-muted-foreground text-sm mt-1">
+                                      Finished{" "}
+                                      {new Date(book.readAt).toLocaleDateString(
+                                        "en-US",
+                                        {
+                                          year: "numeric",
+                                          month: "short",
+                                          day: "numeric",
+                                        },
+                                      )}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-muted-foreground">No books found.</p>
+              )}
+            </div>
+          );
+        })()}
 
       {activeTab === "movies" && (
         <div className="space-y-4">
