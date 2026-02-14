@@ -58,7 +58,11 @@ docker-up:
 docker-down:
 	docker compose down
 
-commit: message ?= "Update"
+commit:
 	git add .
 	git commit -m "Update: $(message)"
 	git push
+
+make test:
+	npm run test
+
