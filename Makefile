@@ -6,7 +6,7 @@ IMAGE_TAG    := latest
 CONTAINER    := 2025-portfolio
 PORT         := 3000
 
-.PHONY: help build run run-detach stop clean smoke dev dev-docker dev-docker-down lint docker-up docker-down
+.PHONY: help build run run-detach stop clean smoke dev dev-docker dev-docker-down lint test docker-up docker-down
 
 help:
 	@echo "Targets:"
@@ -20,6 +20,7 @@ help:
 	@echo "  make dev-docker    - Run Next.js dev server in Docker (watch + hot reload)"
 	@echo "  make dev-docker-down - Stop dev Docker container"
 	@echo "  make lint          - Run ESLint"
+	@echo "  make test          - Run Vitest tests"
 	@echo "  make docker-up     - Start production with docker-compose up -d"
 	@echo "  make docker-down   - Stop docker-compose"
 
@@ -63,6 +64,6 @@ commit:
 	git commit -m "Update: $(message)"
 	git push
 
-make test:
+test:
 	npm run test
 
