@@ -200,6 +200,16 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             );
           },
           pre: ({ children }) => <div className="mb-4">{children}</div>,
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              className="text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-700 dark:hover:text-blue-300"
+              target={href?.startsWith("http") ? "_blank" : undefined}
+              rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
+            >
+              {children}
+            </a>
+          ),
           blockquote: ({ children }) => {
             const arr = React.Children.toArray(children);
             const firstText = getFirstChildText(arr[0]);
@@ -211,6 +221,15 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
               if (config) {
                 const { label, Icon, className } = config;
                 const bodyChildren = arr.slice(1);
+                const bodyMarkdown =
+                  bodyChildren.length === 0 && firstText
+                    ? firstText
+                        .replace(
+                          /^\[!(?:Note|Tip|Warning|Important|Caution|Example|Quote)\]\s*/i,
+                          "",
+                        )
+                        .trim()
+                    : "";
                 return (
                   <div
                     className={`rounded-r-lg pl-4 pr-4 py-3 mb-4 not-italic ${className}`}
@@ -220,11 +239,53 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                       <Icon className="w-4 h-4 shrink-0" />
                       <span>{label}</span>
                     </div>
-                    <div className="[&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2">
-                      {inlineContent ? (
-                        <p className="mb-2 last:mb-0">{inlineContent}</p>
-                      ) : null}
-                      {bodyChildren}
+                    <div className="[&>p]:mb-2 [&>p:last-child]:mb-0 [&>ul]:mb-2 [&>ol]:mb-2 [&_a]:text-blue-600 [&_a]:dark:text-blue-400 [&_a]:hover:underline">
+                      {bodyMarkdown ? (
+                        <div className="prose prose-lg max-w-none *:mb-2 [&>*:last-child]:mb-0">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => (
+                                <p className="mb-2 last:mb-0">{children}</p>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className="font-semibold">
+                                  {children}
+                                </strong>
+                              ),
+                              em: ({ children }) => (
+                                <em className="italic">{children}</em>
+                              ),
+                              a: ({ href, children }) => (
+                                <a
+                                  href={href}
+                                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                                  target={
+                                    href?.startsWith("http")
+                                      ? "_blank"
+                                      : undefined
+                                  }
+                                  rel={
+                                    href?.startsWith("http")
+                                      ? "noopener noreferrer"
+                                      : undefined
+                                  }
+                                >
+                                  {children}
+                                </a>
+                              ),
+                            }}
+                          >
+                            {replaceArrows(bodyMarkdown)}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <>
+                          {inlineContent ? (
+                            <p className="mb-2 last:mb-0">{inlineContent}</p>
+                          ) : null}
+                          {bodyChildren}
+                        </>
+                      )}
                     </div>
                   </div>
                 );

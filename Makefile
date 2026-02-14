@@ -57,3 +57,8 @@ docker-up:
 
 docker-down:
 	docker compose down
+
+commit: message ?= "Update"
+	git add .
+	git commit -m "Update: $(message)"
+	git push
