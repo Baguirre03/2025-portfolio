@@ -84,7 +84,7 @@ export default function MediaPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-6 pt-5 pb-16">
-      <h1 className="text-3xl font-medium tracking-tight text-foreground mb-2">
+      <h1 className="text-3xl font-medium tracking-tight text-foreground mb-1">
         Media
       </h1>
       <p className="text-muted-foreground text-base mb-8">

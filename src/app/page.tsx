@@ -17,24 +17,12 @@ import {
 import { BlogH1 } from "@/components/blog-h1";
 
 type RecentPost = { slug: string; title: string };
-type NowPlaying = {
-  isPlaying: boolean;
-  title: string | null;
-  artist: string | null;
-  album: string | null;
-  url: string | null;
-  imageUrl: string | null;
-} | null;
 
 export default function HomePage() {
   const [isTimelineOpen, setIsTimelineOpen] = useState(true);
   const [isBlogOpen, setIsBlogOpen] = useState(true);
   const [isToolsOpen, setIsToolsOpen] = useState(true);
   const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
-  const [nowPlaying, setNowPlaying] = useState<NowPlaying>(null);
-  // const [headerState, setHeaderState] = useState(0);
-
-  // const headers = [""];
 
   useEffect(() => {
     fetch("/api/recent-posts?limit=2")
@@ -43,121 +31,31 @@ export default function HomePage() {
       .catch(() => setRecentPosts([]));
   }, []);
 
-  useEffect(() => {
-    fetch("/api/spotify/now-playing")
-      .then((r) => r.json())
-      .then(setNowPlaying)
-      .catch(() => setNowPlaying(null));
-  }, []);
-
-  // const triggerConfetti = useCallback(() => {
-  //   const count = 200;
-  //   const defaults = {
-  //     origin: { y: 0.7 },
-  //     zIndex: 9999,
-  //   };
-
-  //   function fire(particleRatio: number, opts: object) {
-  //     const confettiModule = (
-  //       window as unknown as { confetti?: (config: unknown) => void }
-  //     ).confetti;
-  //     if (confettiModule) {
-  //       confettiModule({
-  //         ...defaults,
-  //         ...opts,
-  //         particleCount: Math.floor(count * particleRatio),
-  //       });
-  //     }
-  //   }
-
-  //   fire(0.25, {
-  //     spread: 26,
-  //     startVelocity: 55,
-  //   });
-  //   fire(0.2, {
-  //     spread: 60,
-  //   });
-  //   fire(0.35, {
-  //     spread: 100,
-  //     decay: 0.91,
-  //     scalar: 0.8,
-  //   });
-  //   fire(0.1, {
-  //     spread: 120,
-  //     startVelocity: 25,
-  //     decay: 0.92,
-  //     scalar: 1.2,
-  //   });
-  //   fire(0.1, {
-  //     spread: 120,
-  //     startVelocity: 45,
-  //   });
-  // }, []);
-
-  // const handleHeaderClick = useCallback(() => {
-  //   const nextState = (headerState + 1) % headers.length;
-  //   setHeaderState(nextState);
-
-  //   // Trigger confetti when cycling back to the first header
-  //   if (nextState === 0) {
-  //     triggerConfetti();
-  //   }
-  // }, [headerState, headers.length, triggerConfetti]);
-
   return (
     <>
       <div className="mx-auto max-w-2xl px-6 pt-5 pb-16 flex flex-col justify-center overflow-hidden gap-5">
         <div>
-          {/* <h1
-            onClick={handleHeaderClick}
-            className="text-4xl font-light tracking-tight text-foreground sm:text-5xl mb-8 cursor-pointer select-none"
-          >
-            {headers[headerState]}
-          </h1> */}
-
           <div className="prose prose-lg max-w-none">
             <h2 className="text-3xl font-medium tracking-tight text-foreground mb-4">
               Ben A
             </h2>
             <p className="text-muted-foreground text-base leading-relaxed">
-              Building, learning, and living!
+              Building, learning, and living!<br></br> You should check out my
+              favorite tab:{" "}
+              <Link
+                href="/photography"
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
+                Photography{" "}
+              </Link>
+              or{" "}
+              <Link
+                href="/media"
+                className="text-primary hover:text-primary/80 transition-colors"
+              >
+                Media
+              </Link>
             </p>
-
-            {nowPlaying?.title && (
-              <div className="mt-6 rounded-lg border border-border bg-muted/30 p-4">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
-                  <Music2 className="w-4 h-4 text-[#1DB954]" />
-                  {nowPlaying.isPlaying
-                    ? "Now playing on Spotify"
-                    : "Recently played on Spotify"}
-                </div>
-                <Link
-                  href={nowPlaying.url ?? "https://open.spotify.com"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 group"
-                >
-                  {nowPlaying.imageUrl && (
-                    <Image
-                      src={nowPlaying.imageUrl}
-                      alt={nowPlaying.title}
-                      width={56}
-                      height={56}
-                      className="rounded shrink-0"
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
-                      {nowPlaying.title}
-                    </p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {nowPlaying.artist}
-                      {nowPlaying.album ? ` · ${nowPlaying.album}` : ""}
-                    </p>
-                  </div>
-                </Link>
-              </div>
-            )}
 
             <div className="mt-8">
               <button

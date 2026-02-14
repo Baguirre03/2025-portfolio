@@ -61,21 +61,19 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 pt-5 lg:px-8">
-      <div className="mb-12">
-        <h1 className="text-3xl font-medium text-foreground mb-2">
-          Projects
-        </h1>{" "}
-      </div>
+    <div className="mx-auto max-w-2xl px-6 pt-5 pb-16">
+      <h1 className="text-3xl font-medium tracking-tight text-foreground mb-8">
+        Projects
+      </h1>
 
-      <div className="space-y-8">
+      <div className="space-y-5">
         {projects.map((project) => (
           <article
             key={project.title}
-            className="group border-b border-border pb-8 last:border-0 transition-all"
+            className="border-b border-border pb-5 last:border-0"
           >
-            <div className="flex items-start justify-between gap-4 mb-3">
-              <h2 className="text-xl font-medium text-foreground  transition-colors">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold text-foreground">
                 {project.title}
               </h2>
               <div className="flex items-center gap-2 shrink-0">
@@ -86,7 +84,7 @@ export default function ProjectsPage() {
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   aria-label="View source code"
                 >
-                  <Github className="h-5 w-5" />
+                  <Github className="h-4 w-4" />
                 </Link>
                 {project.live && (
                   <Link
@@ -96,21 +94,21 @@ export default function ProjectsPage() {
                     className="text-muted-foreground hover:text-foreground transition-colors"
                     aria-label="Open live site"
                   >
-                    <ExternalLink className="h-5 w-5" />
+                    <ExternalLink className="h-4 w-4" />
                   </Link>
                 )}
               </div>
             </div>
 
-            <p className="text-muted-foreground leading-relaxed mb-4">
+            <p className="text-muted-foreground text-base leading-relaxed mt-1">
               {project.description}
             </p>
 
-            <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex flex-wrap gap-1.5 items-center mt-3">
               {project.technologies.map((tech) => (
                 <span
                   key={tech}
-                  className="text-xs px-2.5 py-1 rounded-md bg-muted text-muted-foreground font-medium"
+                  className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground font-medium"
                 >
                   {tech}
                 </span>
@@ -118,9 +116,9 @@ export default function ProjectsPage() {
               {project.showInstalls && raycastInstalls && (
                 <span
                   onClick={() => window.open(project.live, "_blank")}
-                  className="hover:cursor-pointer flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-primary/5 to-primary/10 text-primary font-semibold ring-1 ring-primary/20 hover:ring-primary/30 transition-all"
+                  className="hover:cursor-pointer flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/5 text-primary font-semibold ring-1 ring-primary/20 hover:ring-primary/30 transition-all"
                 >
-                  <Download className="h-3.5 w-3.5" />
+                  <Download className="h-3 w-3" />
                   {raycastInstalls} Downloads
                 </span>
               )}
