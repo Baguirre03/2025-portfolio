@@ -25,7 +25,7 @@ help:
 	@echo "  make docker-down   - Stop docker-compose"
 
 build:
-	docker build -t $(IMAGE_NAME):$(IMAGE_TAG) .
+	docker build --load -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
 run: build
 	docker run --rm -p $(PORT):3000 --name $(CONTAINER) $(IMAGE_NAME):$(IMAGE_TAG)

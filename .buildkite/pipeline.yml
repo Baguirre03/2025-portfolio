@@ -1,0 +1,10 @@
+steps:
+  - label: ":package: Lint & Test"
+    commands:
+      - npm ci
+      - make lint
+      - npm run test
+
+  - label: ":docker: Build & Smoke Test"
+    commands:
+      - make smoke
