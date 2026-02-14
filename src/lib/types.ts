@@ -8,4 +8,6 @@ export type Photo = {
   mime_type: string;
   bucket: string;
   uploaded_at: string;
+  roll_number: number | null;
+  published_date: string | null;
 };

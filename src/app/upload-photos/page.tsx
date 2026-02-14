@@ -2,391 +2,401 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Photo } from "@/lib/types";
 import { ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from "@/lib/upload";
+import { X, Upload, Check, AlertCircle, Loader2 } from "lucide-react";
 
-interface UploadResult {
-  success: boolean;
-  photo?: Photo;
-  publicUrl?: string;
+type FileEntry = {
+  file: File;
+  preview: string;
+  status: "pending" | "uploading" | "done" | "error";
   error?: string;
-}
+};
 
-interface FormData {
-  title: string;
-  description: string;
+interface SharedFormData {
   isPublic: boolean;
+  rollNumber: string;
+  publishedDate: string;
 }
 
-// Custom hook for file validation
-const useFileValidation = () => {
+export default function PhotoUpload() {
+  const [files, setFiles] = useState<FileEntry[]>([]);
+  const [sharedData, setSharedData] = useState<SharedFormData>({
+    isPublic: true,
+    rollNumber: "",
+    publishedDate: "",
+  });
+  const [uploading, setUploading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const validateFile = useCallback(
     (file: File): { isValid: boolean; error?: string } => {
       if (!ALLOWED_FILE_TYPES.includes(file.type)) {
         return {
           isValid: false,
-          error: `Please select a valid image file. Supported formats: ${ALLOWED_FILE_TYPES.map(
-            (type) => type.split("/")[1].toUpperCase()
-          ).join(", ")}`,
+          error: `Unsupported format: ${file.type.split("/")[1]?.toUpperCase()}`,
         };
       }
-
       if (file.size > MAX_FILE_SIZE) {
         return {
           isValid: false,
-          error: `File size must be less than ${
-            MAX_FILE_SIZE / (1024 * 1024)
-          }MB`,
+          error: `File too large (${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
         };
       }
-
       return { isValid: true };
     },
-    []
+    [],
   );
 
-  return { validateFile };
-};
-
-const useFilePreview = () => {
-  const [preview, setPreview] = useState<string | null>(null);
-
-  const generatePreview = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result;
-      if (typeof result === "string") {
-        setPreview(result);
-      }
-    };
-    reader.readAsDataURL(file);
-  }, []);
-
-  const clearPreview = useCallback(() => {
-    setPreview(null);
-  }, []);
-
-  return { preview, generatePreview, clearPreview };
-};
-
-export default function PhotoUpload() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState<FormData>({
-    title: "",
-    description: "",
-    isPublic: true,
-  });
-  const [uploading, setUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { validateFile } = useFileValidation();
-  const { preview, generatePreview, clearPreview } = useFilePreview();
-
-  const handleFileSelect = useCallback(
+  const handleFilesSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
+      const selected = event.target.files;
+      if (!selected || selected.length === 0) return;
 
       setValidationError(null);
-      setUploadResult(null);
 
-      if (!file) {
-        setSelectedFile(null);
-        clearPreview();
-        return;
+      const newEntries: FileEntry[] = [];
+      const errors: string[] = [];
+
+      for (const file of Array.from(selected)) {
+        const validation = validateFile(file);
+        if (!validation.isValid) {
+          errors.push(`${file.name}: ${validation.error}`);
+          continue;
+        }
+        newEntries.push({
+          file,
+          preview: URL.createObjectURL(file),
+          status: "pending",
+        });
       }
 
-      const validation = validateFile(file);
-      if (!validation.isValid) {
-        setValidationError(validation.error || "Invalid file");
-        setSelectedFile(null);
-        clearPreview();
-        return;
+      if (errors.length > 0) {
+        setValidationError(errors.join("\n"));
       }
 
-      setSelectedFile(file);
-      generatePreview(file);
+      setFiles((prev) => [...prev, ...newEntries]);
+
+      // Reset file input so the same files can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
     },
-    [validateFile, clearPreview, generatePreview]
+    [validateFile],
   );
 
-  const handleFormDataChange = useCallback(
-    (field: keyof FormData, value: string | boolean) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    },
-    []
-  );
+  const removeFile = useCallback((index: number) => {
+    setFiles((prev) => {
+      const entry = prev[index];
+      if (entry) URL.revokeObjectURL(entry.preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
 
-  const resetForm = useCallback(() => {
-    setSelectedFile(null);
-    setFormData({ title: "", description: "", isPublic: true });
-    clearPreview();
+  const clearAll = useCallback(() => {
+    files.forEach((f) => URL.revokeObjectURL(f.preview));
+    setFiles([]);
     setValidationError(null);
-    setUploadResult(null);
+    setUploadProgress({ done: 0, total: 0 });
+  }, [files]);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  }, [clearPreview]);
+  const handleUploadAll = useCallback(async () => {
+    const pending = files.filter((f) => f.status === "pending");
+    if (pending.length === 0) return;
 
-  const handleUpload = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
+    setUploading(true);
+    setUploadProgress({ done: 0, total: pending.length });
 
-      if (!selectedFile) {
-        setValidationError("Please select a file first");
-        return;
-      }
+    let completed = 0;
 
-      setUploading(true);
-      setUploadResult(null);
-      setValidationError(null);
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].status !== "pending") continue;
+
+      // Mark as uploading
+      setFiles((prev) =>
+        prev.map((f, idx) => (idx === i ? { ...f, status: "uploading" } : f)),
+      );
 
       try {
         const payload = new FormData();
-        payload.append("file", selectedFile);
-        payload.append("title", formData.title.trim() || selectedFile.name);
-        payload.append("description", formData.description.trim());
-        payload.append("isPublic", String(formData.isPublic));
+        payload.append("file", files[i].file);
+        payload.append("title", files[i].file.name);
+        payload.append("description", "");
+        payload.append("isPublic", String(sharedData.isPublic));
+        if (sharedData.rollNumber.trim()) {
+          payload.append("rollNumber", sharedData.rollNumber.trim());
+        }
+        if (sharedData.publishedDate) {
+          payload.append("publishedDate", sharedData.publishedDate);
+        }
 
-        const response = await fetch("/api/upload-photo", {
+        const res = await fetch("/api/upload-photo", {
           method: "POST",
           body: payload,
         });
 
-        const result = (await response.json()) as UploadResult;
+        const result = await res.json();
 
-        if (!response.ok || !result.success) {
-          setUploadResult({
-            success: false,
-            error: result.error || "Upload failed",
-          });
-          return;
+        if (!res.ok || !result.success) {
+          throw new Error(result.error || "Upload failed");
         }
 
-        setUploadResult(result);
-        resetForm();
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred";
-        setUploadResult({
-          success: false,
-          error: errorMessage,
-        });
-      } finally {
-        setUploading(false);
+        setFiles((prev) =>
+          prev.map((f, idx) => (idx === i ? { ...f, status: "done" } : f)),
+        );
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Upload failed";
+        setFiles((prev) =>
+          prev.map((f, idx) =>
+            idx === i ? { ...f, status: "error", error: message } : f,
+          ),
+        );
       }
-    },
-    [selectedFile, formData, resetForm]
-  );
 
-  const isFormValid = selectedFile && !validationError && !uploading;
+      completed++;
+      setUploadProgress({ done: completed, total: pending.length });
+    }
+
+    setUploading(false);
+  }, [files, sharedData]);
+
+  const pendingCount = files.filter((f) => f.status === "pending").length;
+  const doneCount = files.filter((f) => f.status === "done").length;
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-gray-900">Upload Photo</h2>
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-4 text-gray-900">Upload Photos</h2>
 
-      <form onSubmit={handleUpload} className="space-y-4">
-        <div>
-          <label
-            htmlFor="photo-input"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Select Photo
-          </label>
-          <input
-            ref={fileInputRef}
-            id="photo-input"
-            type="file"
-            accept={ALLOWED_FILE_TYPES.join(",")}
-            onChange={handleFileSelect}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
-            disabled={uploading}
-          />
-          {selectedFile && (
-            <p className="mt-1 text-xs text-gray-500">
-              Selected: {selectedFile.name} (
-              {(selectedFile.size / 1024).toFixed(1)} KB)
-            </p>
-          )}
+      {/* File picker */}
+      <div className="mb-6">
+        <label
+          htmlFor="photo-input"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Select Photos
+        </label>
+        <input
+          ref={fileInputRef}
+          id="photo-input"
+          type="file"
+          multiple
+          accept={ALLOWED_FILE_TYPES.join(",")}
+          onChange={handleFilesSelect}
+          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
+          disabled={uploading}
+        />
+        <p className="mt-1 text-xs text-gray-400">
+          JPEG or PNG, max 10MB each. Select multiple files at once.
+        </p>
+      </div>
+
+      {validationError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-800 text-sm whitespace-pre-line">
+            {validationError}
+          </p>
         </div>
+      )}
 
-        {validationError && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800 text-sm">{validationError}</p>
+      {/* Thumbnails grid */}
+      {files.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-700">
+              {files.length} photo{files.length !== 1 ? "s" : ""} selected
+              {doneCount > 0 && (
+                <span className="text-green-600 ml-2">
+                  ({doneCount} uploaded)
+                </span>
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-xs text-red-500 hover:text-red-700"
+              disabled={uploading}
+            >
+              Clear all
+            </button>
           </div>
-        )}
+          <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+            {files.map((entry, index) => (
+              <div key={`${entry.file.name}-${index}`} className="relative group">
+                <div className="relative aspect-square rounded overflow-hidden border">
+                  <Image
+                    src={entry.preview}
+                    alt={entry.file.name}
+                    fill
+                    className="object-cover"
+                    sizes="100px"
+                  />
+                  {/* Status overlay */}
+                  {entry.status === "uploading" && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    </div>
+                  )}
+                  {entry.status === "done" && (
+                    <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
+                      <Check className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                  {entry.status === "error" && (
+                    <div className="absolute inset-0 bg-red-500/30 flex items-center justify-center">
+                      <AlertCircle className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                </div>
+                {/* Remove button */}
+                {entry.status === "pending" && !uploading && (
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+                {entry.status === "error" && (
+                  <p className="text-[10px] text-red-500 mt-0.5 truncate">
+                    {entry.error}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-        {preview && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Preview
-            </label>
-            <div className="relative h-48">
-              <Image
-                src={preview}
-                alt="Preview"
-                fill
-                className="object-cover rounded-lg border shadow-sm"
-                sizes="100vw"
+      {/* Shared metadata */}
+      {files.length > 0 && (
+        <div className="space-y-4 mb-6">
+          <p className="text-sm font-medium text-gray-700">
+            Shared settings for all photos
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="rollNumber"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Roll # <span className="text-gray-400">(optional)</span>
+              </label>
+              <input
+                id="rollNumber"
+                type="number"
+                min="1"
+                value={sharedData.rollNumber}
+                onChange={(e) =>
+                  setSharedData((d) => ({ ...d, rollNumber: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                placeholder="e.g. 1"
+                disabled={uploading}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="publishedDate"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Published Date{" "}
+                <span className="text-gray-400">(optional)</span>
+              </label>
+              <input
+                id="publishedDate"
+                type="date"
+                value={sharedData.publishedDate}
+                onChange={(e) =>
+                  setSharedData((d) => ({
+                    ...d,
+                    publishedDate: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                disabled={uploading}
               />
             </div>
           </div>
-        )}
+          <div>
+            <label
+              htmlFor="isPublic"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Visibility
+            </label>
+            <select
+              id="isPublic"
+              value={sharedData.isPublic ? "public" : "private"}
+              onChange={(e) =>
+                setSharedData((d) => ({
+                  ...d,
+                  isPublic: e.target.value === "public",
+                }))
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
+              disabled={uploading}
+            >
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+        </div>
+      )}
 
-        <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Title <span className="text-gray-400">(optional)</span>
-          </label>
-          <input
-            id="title"
-            type="text"
-            value={formData.title}
-            onChange={(e) => handleFormDataChange("title", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            placeholder={selectedFile ? selectedFile.name : "Enter photo title"}
-            maxLength={100}
-            disabled={uploading}
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Description <span className="text-gray-400">(optional)</span>
-          </label>
-          <textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) =>
-              handleFormDataChange("description", e.target.value)
-            }
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
-            placeholder="Enter photo description"
-            maxLength={500}
-            disabled={uploading}
-          />
-          <p className="mt-1 text-xs text-gray-400">
-            {formData.description.length}/500 characters
-          </p>
-        </div>
-        <div>
-          <label
-            htmlFor="isPublic"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Visibility
-          </label>
-          <select
-            id="isPublic"
-            value={formData.isPublic ? "public" : "private"}
-            onChange={(e) =>
-              handleFormDataChange("isPublic", e.target.value === "public")
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
-            disabled={uploading}
-          >
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={!isFormValid}
-          className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-        >
-          {uploading ? (
-            <span className="flex items-center justify-center">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Uploading...
+      {/* Upload progress */}
+      {uploading && (
+        <div className="mb-4">
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+            <span>
+              Uploading {uploadProgress.done} of {uploadProgress.total}...
             </span>
-          ) : (
-            "Upload Photo"
-          )}
-        </button>
-      </form>
-
-      {/* Upload Result */}
-      {uploadResult && (
-        <div
-          className={`mt-4 p-4 rounded-md ${
-            uploadResult.success
-              ? "bg-green-50 border border-green-200"
-              : "bg-red-50 border border-red-200"
-          }`}
-          role="alert"
-        >
-          {uploadResult.success ? (
-            <div>
-              <div className="flex">
-                <svg
-                  className="h-5 w-5 text-green-400 mr-2"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <p className="text-green-800 font-semibold">
-                  Upload successful!
-                </p>
-              </div>
-              {uploadResult.publicUrl && (
-                <p className="text-green-600 text-sm mt-2 break-all">
-                  <strong>URL:</strong> {uploadResult.publicUrl}
-                </p>
+            <span>
+              {Math.round(
+                (uploadProgress.done / uploadProgress.total) * 100,
               )}
-            </div>
-          ) : (
-            <div>
-              <div className="flex">
-                <svg
-                  className="h-5 w-5 text-red-400 mr-2"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <p className="text-red-800 font-semibold">Upload failed</p>
-              </div>
-              <p className="text-red-600 text-sm mt-1">{uploadResult.error}</p>
-            </div>
-          )}
+              %
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{
+                width: `${(uploadProgress.done / uploadProgress.total) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Upload button */}
+      <button
+        type="button"
+        onClick={handleUploadAll}
+        disabled={pendingCount === 0 || uploading}
+        className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Uploading...
+          </>
+        ) : (
+          <>
+            <Upload className="w-4 h-4" />
+            Upload {pendingCount > 0 ? `${pendingCount} Photo${pendingCount !== 1 ? "s" : ""}` : "Photos"}
+          </>
+        )}
+      </button>
+
+      {/* Summary after upload */}
+      {!uploading && doneCount > 0 && (
+        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+          <p className="text-green-800 text-sm font-medium">
+            {doneCount} photo{doneCount !== 1 ? "s" : ""} uploaded successfully.
+            You can edit titles and descriptions from the gallery.
+          </p>
         </div>
       )}
     </div>

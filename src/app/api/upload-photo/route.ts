@@ -75,6 +75,10 @@ export async function POST(request: Request) {
   const title = (formData.get("title") as string | null)?.trim() ?? "";
   const description =
     (formData.get("description") as string | null)?.trim() ?? "";
+  const rollNumberRaw = formData.get("rollNumber") as string | null;
+  const rollNumber = rollNumberRaw ? parseInt(rollNumberRaw, 10) : null;
+  const publishedDate =
+    (formData.get("publishedDate") as string | null)?.trim() || null;
 
   const bucket = isPublic ? PUBLIC_BUCKET : PRIVATE_BUCKET;
   const fileExt = file.name.split(".").pop();
@@ -109,6 +113,8 @@ export async function POST(request: Request) {
           mime_type: file.type,
           bucket,
           uploaded_at: new Date().toISOString(),
+          roll_number: Number.isFinite(rollNumber) ? rollNumber : null,
+          published_date: publishedDate,
         },
       ])
       .select()

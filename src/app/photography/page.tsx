@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
+import { Pencil, Check, X, Loader2 } from "lucide-react";
 
 type PhotosResponse = {
   photos: Photo[];
@@ -15,6 +16,15 @@ export default function PhotoGallery() {
   const [nextCursor, setNextCursor] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    title: "",
+    description: "",
+    roll_number: "",
+    published_date: "",
+  });
+  const [saving, setSaving] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Calculate how many photos to load based on viewport
@@ -41,11 +51,21 @@ export default function PhotoGallery() {
   }, []);
 
   useEffect(() => {
+    fetch("/api/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.isAdmin) setIsAdmin(true);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!selectedPhoto) return;
 
       if (e.key === "Escape") {
         setSelectedPhoto(null);
+        setEditing(false);
         return;
       }
 
@@ -138,6 +158,49 @@ export default function PhotoGallery() {
     }
   }, [loadPhotos, nextCursor, loadingMore, calculatePhotosToLoad]);
 
+  const startEditing = useCallback(() => {
+    if (!selectedPhoto) return;
+    setEditData({
+      title: selectedPhoto.title || "",
+      description: selectedPhoto.description || "",
+      roll_number: selectedPhoto.roll_number != null ? String(selectedPhoto.roll_number) : "",
+      published_date: selectedPhoto.published_date || "",
+    });
+    setEditing(true);
+  }, [selectedPhoto]);
+
+  const cancelEditing = useCallback(() => {
+    setEditing(false);
+  }, []);
+
+  const saveEdits = useCallback(async () => {
+    if (!selectedPhoto) return;
+    setSaving(true);
+    try {
+      const body = {
+        title: editData.title,
+        description: editData.description,
+        roll_number: editData.roll_number ? parseInt(editData.roll_number, 10) : null,
+        published_date: editData.published_date || null,
+      };
+      const res = await fetch(`/api/photos/${selectedPhoto.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      const { photo: updated } = await res.json();
+      // Update local state
+      setPhotos((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+      setSelectedPhoto((prev) => (prev ? { ...prev, ...updated } : prev));
+      setEditing(false);
+    } catch (err) {
+      console.error("Error saving photo:", err);
+    } finally {
+      setSaving(false);
+    }
+  }, [selectedPhoto, editData]);
+
   // Infinite scroll: observe when the load more trigger enters viewport
   useEffect(() => {
     if (!loadMoreRef.current || nextCursor == null) return;
@@ -209,7 +272,7 @@ export default function PhotoGallery() {
           role="dialog"
           aria-modal="true"
           aria-label={selectedPhoto.title || "Photo viewer"}
-          onClick={() => setSelectedPhoto(null)}
+          onClick={() => { setSelectedPhoto(null); setEditing(false); }}
         >
           <div className="relative w-full max-w-5xl">
             <div className="relative w-full h-[60vh] md:h-[70vh] bg-transparent rounded-lg overflow-hidden">
@@ -223,14 +286,120 @@ export default function PhotoGallery() {
                 // unoptimized={selectedPhoto.bucket === "photos-private"}
               />
             </div>
-            <div className="mt-4 text-center text-white">
-              <h3 className="text-lg font-semibold">
-                {selectedPhoto.title || "Untitled"}
-              </h3>
-              {selectedPhoto.description && (
-                <p className="text-sm text-gray-200 mt-1">
-                  {selectedPhoto.description}
-                </p>
+            <div
+              className="mt-4 text-center text-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {editing ? (
+                <div className="max-w-md mx-auto space-y-3">
+                  <input
+                    type="text"
+                    value={editData.title}
+                    onChange={(e) =>
+                      setEditData((d) => ({ ...d, title: e.target.value }))
+                    }
+                    placeholder="Title"
+                    className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <textarea
+                    value={editData.description}
+                    onChange={(e) =>
+                      setEditData((d) => ({
+                        ...d,
+                        description: e.target.value,
+                      }))
+                    }
+                    placeholder="Description"
+                    rows={2}
+                    className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      min="1"
+                      value={editData.roll_number}
+                      onChange={(e) =>
+                        setEditData((d) => ({
+                          ...d,
+                          roll_number: e.target.value,
+                        }))
+                      }
+                      placeholder="Roll #"
+                      className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="date"
+                      value={editData.published_date}
+                      onChange={(e) =>
+                        setEditData((d) => ({
+                          ...d,
+                          published_date: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    <button
+                      onClick={saveEdits}
+                      disabled={saving}
+                      className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm disabled:opacity-50"
+                    >
+                      {saving ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Check className="w-3.5 h-3.5" />
+                      )}
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelEditing}
+                      disabled={saving}
+                      className="flex items-center gap-1 px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-sm"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-center gap-2">
+                    <h3 className="text-lg font-semibold">
+                      {selectedPhoto.title || "Untitled"}
+                    </h3>
+                    {isAdmin && (
+                      <button
+                        onClick={startEditing}
+                        className="p-1 rounded hover:bg-white/10 transition-colors"
+                        title="Edit photo details"
+                      >
+                        <Pencil className="w-4 h-4 text-gray-300" />
+                      </button>
+                    )}
+                  </div>
+                  {selectedPhoto.description && (
+                    <p className="text-sm text-gray-200 mt-1">
+                      {selectedPhoto.description}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-center gap-4 mt-2 text-sm text-gray-300">
+                    {selectedPhoto.roll_number != null && (
+                      <span>Roll #{selectedPhoto.roll_number}</span>
+                    )}
+                    {selectedPhoto.published_date && (
+                      <span>
+                        {new Date(
+                          selectedPhoto.published_date + "T00:00:00",
+                        ).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
