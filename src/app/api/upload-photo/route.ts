@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 
   if (file.size > MAX_FILE_SIZE) {
     return NextResponse.json(
-      { success: false, error: "File exceeds maximum size (10MB)" },
+      { success: false, error: "File exceeds maximum size (20MB)" },
       { status: 400 }
     );
   }

@@ -187,7 +187,7 @@ export default function PhotoUpload() {
           disabled={uploading}
         />
         <p className="mt-1 text-xs text-gray-400">
-          JPEG or PNG, max 10MB each. Select multiple files at once.
+          JPEG or PNG, max 20MB each. Select multiple files at once.
         </p>
       </div>
 
