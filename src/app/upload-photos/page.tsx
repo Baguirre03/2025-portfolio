@@ -12,8 +12,10 @@ type FileEntry = {
   error?: string;
 };
 
+type PhotoVisibility = "public" | "private" | "friends" | "family";
+
 interface SharedFormData {
-  isPublic: boolean;
+  visibility: PhotoVisibility;
   rollNumber: string;
   publishedDate: string;
 }
@@ -21,7 +23,7 @@ interface SharedFormData {
 export default function PhotoUpload() {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [sharedData, setSharedData] = useState<SharedFormData>({
-    isPublic: true,
+    visibility: "public",
     rollNumber: "",
     publishedDate: "",
   });
@@ -122,7 +124,7 @@ export default function PhotoUpload() {
         payload.append("file", files[i].file);
         payload.append("title", files[i].file.name);
         payload.append("description", "");
-        payload.append("isPublic", String(sharedData.isPublic));
+        payload.append("visibility", sharedData.visibility);
         if (sharedData.rollNumber.trim()) {
           payload.append("rollNumber", sharedData.rollNumber.trim());
         }
@@ -321,24 +323,26 @@ export default function PhotoUpload() {
           </div>
           <div>
             <label
-              htmlFor="isPublic"
+              htmlFor="visibility"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Visibility
             </label>
             <select
-              id="isPublic"
-              value={sharedData.isPublic ? "public" : "private"}
+              id="visibility"
+              value={sharedData.visibility}
               onChange={(e) =>
                 setSharedData((d) => ({
                   ...d,
-                  isPublic: e.target.value === "public",
+                  visibility: e.target.value as PhotoVisibility,
                 }))
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
               disabled={uploading}
             >
               <option value="public">Public</option>
+              <option value="friends">Friends</option>
+              <option value="family">Family</option>
               <option value="private">Private</option>
             </select>
           </div>

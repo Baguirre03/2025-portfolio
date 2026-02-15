@@ -38,5 +38,6 @@ export async function getAllPhotoPublicUrls(): Promise<Photo[]> {
     uploaded_at: row.uploaded_at,
     roll_number: row.roll_number,
     published_date: row.published_date,
+    visibility: row.visibility,
   }));
 }

@@ -1,3 +1,5 @@
+export type PhotoVisibility = "public" | "private" | "friends" | "family";
+
 export type Photo = {
   id: string;
   filename: string;
@@ -10,4 +12,5 @@ export type Photo = {
   uploaded_at: string;
   roll_number: number | null;
   published_date: string | null;
+  visibility: PhotoVisibility;
 };

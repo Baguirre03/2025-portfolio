@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
-import { Pencil, Check, X, Loader2 } from "lucide-react";
+import { Pencil, Check, X, Loader2, Trash2, Lock, Unlock } from "lucide-react";
+import type { PhotoVisibility } from "@/lib/types";
 
 type PhotosResponse = {
   photos: Photo[];
@@ -23,8 +24,16 @@ export default function PhotoGallery() {
     description: "",
     roll_number: "",
     published_date: "",
+    visibility: "public" as PhotoVisibility,
   });
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [accessLevels, setAccessLevels] = useState<string[]>([]);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [accessPassword, setAccessPassword] = useState("");
+  const [accessError, setAccessError] = useState("");
+  const [accessLoading, setAccessLoading] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Calculate how many photos to load based on viewport
@@ -57,6 +66,13 @@ export default function PhotoGallery() {
         if (data.isAdmin) setIsAdmin(true);
       })
       .catch(() => {});
+
+    fetch("/api/photo-access")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.levels) setAccessLevels(data.levels);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -66,6 +82,7 @@ export default function PhotoGallery() {
       if (e.key === "Escape") {
         setSelectedPhoto(null);
         setEditing(false);
+        setConfirmDelete(false);
         return;
       }
 
@@ -110,7 +127,7 @@ export default function PhotoGallery() {
     setPhotos((prev) =>
       typeof cursor === "number" && cursor > 0
         ? [...prev, ...data.photos]
-        : data.photos
+        : data.photos,
     );
     setNextCursor(data.nextCursor);
   }, []);
@@ -163,8 +180,12 @@ export default function PhotoGallery() {
     setEditData({
       title: selectedPhoto.title || "",
       description: selectedPhoto.description || "",
-      roll_number: selectedPhoto.roll_number != null ? String(selectedPhoto.roll_number) : "",
+      roll_number:
+        selectedPhoto.roll_number != null
+          ? String(selectedPhoto.roll_number)
+          : "",
       published_date: selectedPhoto.published_date || "",
+      visibility: selectedPhoto.visibility || "public",
     });
     setEditing(true);
   }, [selectedPhoto]);
@@ -180,8 +201,11 @@ export default function PhotoGallery() {
       const body = {
         title: editData.title,
         description: editData.description,
-        roll_number: editData.roll_number ? parseInt(editData.roll_number, 10) : null,
+        roll_number: editData.roll_number
+          ? parseInt(editData.roll_number, 10)
+          : null,
         published_date: editData.published_date || null,
+        visibility: editData.visibility,
       };
       const res = await fetch(`/api/photos/${selectedPhoto.id}`, {
         method: "PATCH",
@@ -191,7 +215,9 @@ export default function PhotoGallery() {
       if (!res.ok) throw new Error("Failed to save");
       const { photo: updated } = await res.json();
       // Update local state
-      setPhotos((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+      setPhotos((prev) =>
+        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)),
+      );
       setSelectedPhoto((prev) => (prev ? { ...prev, ...updated } : prev));
       setEditing(false);
     } catch (err) {
@@ -200,6 +226,65 @@ export default function PhotoGallery() {
       setSaving(false);
     }
   }, [selectedPhoto, editData]);
+
+  const submitAccessPassword = useCallback(async () => {
+    if (!accessPassword.trim()) return;
+    setAccessLoading(true);
+    setAccessError("");
+    try {
+      const res = await fetch("/api/photo-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: accessPassword.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAccessError(data.error || "Incorrect password");
+        return;
+      }
+      setAccessLevels(data.levels);
+      setAccessPassword("");
+      setShowPasswordPrompt(false);
+      // Reload photos with new access
+      setPhotos([]);
+      setNextCursor(null);
+      const limit = calculatePhotosToLoad();
+      await loadPhotos(undefined, limit);
+    } catch {
+      setAccessError("Something went wrong");
+    } finally {
+      setAccessLoading(false);
+    }
+  }, [accessPassword, calculatePhotosToLoad, loadPhotos]);
+
+  const clearAccess = useCallback(async () => {
+    await fetch("/api/photo-access", { method: "DELETE" });
+    setAccessLevels([]);
+    // Reload photos (now only public)
+    setPhotos([]);
+    setNextCursor(null);
+    const limit = calculatePhotosToLoad();
+    await loadPhotos(undefined, limit);
+  }, [calculatePhotosToLoad, loadPhotos]);
+
+  const handleDelete = useCallback(async () => {
+    if (!selectedPhoto) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/photos/${selectedPhoto.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      setPhotos((prev) => prev.filter((p) => p.id !== selectedPhoto.id));
+      setSelectedPhoto(null);
+      setConfirmDelete(false);
+      setEditing(false);
+    } catch (err) {
+      console.error("Error deleting photo:", err);
+    } finally {
+      setDeleting(false);
+    }
+  }, [selectedPhoto]);
 
   // Infinite scroll: observe when the load more trigger enters viewport
   useEffect(() => {
@@ -212,7 +297,7 @@ export default function PhotoGallery() {
           handleLoadMore();
         }
       },
-      { threshold: 0.1, rootMargin: "100px" } // Trigger 100px before visible
+      { threshold: 0.1, rootMargin: "100px" }, // Trigger 100px before visible
     );
 
     observer.observe(loadMoreRef.current);
@@ -235,6 +320,81 @@ export default function PhotoGallery() {
           {error}
         </div>
       )}
+
+      {!isAdmin && (
+        <div className="mb-4 flex items-center gap-3 flex-wrap">
+          {accessLevels.length > 0 ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <Unlock className="w-4 h-4" />
+              <span>
+                Viewing:{" "}
+                {accessLevels
+                  .map((l) => l.charAt(0).toUpperCase() + l.slice(1))
+                  .join(", ")}{" "}
+                photos
+              </span>
+              <button
+                onClick={clearAccess}
+                className="text-xs text-red-400 hover:text-red-300 underline ml-1"
+              >
+                Lock
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowPasswordPrompt(true)}
+              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 transition-colors"
+            >
+              <Lock className="w-4 h-4" />
+              Enter access code
+            </button>
+          )}
+
+          {showPasswordPrompt && (
+            <div className="flex items-center gap-2">
+              <input
+                type="password"
+                value={accessPassword}
+                onChange={(e) => {
+                  setAccessPassword(e.target.value);
+                  setAccessError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") submitAccessPassword();
+                }}
+                placeholder="Password"
+                autoFocus
+                className="px-2 py-1 rounded bg-white/10 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
+              />
+              <button
+                onClick={submitAccessPassword}
+                disabled={accessLoading}
+                className="px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm disabled:opacity-50"
+              >
+                {accessLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  "Unlock"
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setShowPasswordPrompt(false);
+                  setAccessPassword("");
+                  setAccessError("");
+                }}
+                className="p-1 rounded hover:bg-white/10 text-gray-400"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+              {accessError && (
+                <span className="text-xs text-red-400">{accessError}</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="photo-gallery grid grid-cols-2 md:grid-cols-5 gap-2">
         {photos.map((photo, index) => (
           <button
@@ -272,7 +432,11 @@ export default function PhotoGallery() {
           role="dialog"
           aria-modal="true"
           aria-label={selectedPhoto.title || "Photo viewer"}
-          onClick={() => { setSelectedPhoto(null); setEditing(false); }}
+          onClick={() => {
+            setSelectedPhoto(null);
+            setEditing(false);
+            setConfirmDelete(false);
+          }}
         >
           <div className="relative w-full max-w-5xl">
             <div className="relative w-full h-[60vh] md:h-[70vh] bg-transparent rounded-lg overflow-hidden">
@@ -313,7 +477,7 @@ export default function PhotoGallery() {
                     rows={2}
                     className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   />
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <input
                       type="number"
                       min="1"
@@ -338,6 +502,29 @@ export default function PhotoGallery() {
                       }
                       className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <select
+                      value={editData.visibility}
+                      onChange={(e) =>
+                        setEditData((d) => ({
+                          ...d,
+                          visibility: e.target.value as PhotoVisibility,
+                        }))
+                      }
+                      className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="public" className="text-black">
+                        Public
+                      </option>
+                      <option value="friends" className="text-black">
+                        Friends
+                      </option>
+                      <option value="family" className="text-black">
+                        Family
+                      </option>
+                      <option value="private" className="text-black">
+                        Private
+                      </option>
+                    </select>
                   </div>
                   <div className="flex items-center justify-center gap-2 pt-1">
                     <button
@@ -369,36 +556,77 @@ export default function PhotoGallery() {
                       {selectedPhoto.title || "Untitled"}
                     </h3>
                     {isAdmin && (
-                      <button
-                        onClick={startEditing}
-                        className="p-1 rounded hover:bg-white/10 transition-colors"
-                        title="Edit photo details"
-                      >
-                        <Pencil className="w-4 h-4 text-gray-300" />
-                      </button>
+                      <>
+                        <button
+                          onClick={startEditing}
+                          className="p-1 rounded hover:bg-white/10 transition-colors"
+                          title="Edit photo details"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-300" />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(true)}
+                          className="p-1 rounded hover:bg-red-500/20 transition-colors"
+                          title="Delete photo"
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-300 hover:text-red-400" />
+                        </button>
+                      </>
                     )}
                   </div>
-                  {selectedPhoto.description && (
-                    <p className="text-sm text-gray-200 mt-1">
-                      {selectedPhoto.description}
-                    </p>
+                  {confirmDelete ? (
+                    <div className="mt-3 p-3 rounded bg-red-500/10 border border-red-500/30 max-w-sm mx-auto">
+                      <p className="text-sm text-red-200 mb-2">
+                        Are you sure you want to delete this photo? This cannot
+                        be undone.
+                      </p>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={handleDelete}
+                          disabled={deleting}
+                          className="flex items-center gap-1 px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm disabled:opacity-50"
+                        >
+                          {deleting ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(false)}
+                          disabled={deleting}
+                          className="flex items-center gap-1 px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {selectedPhoto.description && (
+                        <p className="text-sm text-gray-200 mt-1">
+                          {selectedPhoto.description}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-center gap-4 mt-2 text-sm text-gray-300">
+                        {selectedPhoto.roll_number != null && (
+                          <span>Roll #{selectedPhoto.roll_number}</span>
+                        )}
+                        {selectedPhoto.published_date && (
+                          <span>
+                            {new Date(
+                              selectedPhoto.published_date + "T00:00:00",
+                            ).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </>
                   )}
-                  <div className="flex items-center justify-center gap-4 mt-2 text-sm text-gray-300">
-                    {selectedPhoto.roll_number != null && (
-                      <span>Roll #{selectedPhoto.roll_number}</span>
-                    )}
-                    {selectedPhoto.published_date && (
-                      <span>
-                        {new Date(
-                          selectedPhoto.published_date + "T00:00:00",
-                        ).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    )}
-                  </div>
                 </>
               )}
             </div>
