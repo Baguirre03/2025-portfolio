@@ -67,12 +67,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const VALID_VISIBILITY = ["public", "private", "friends", "family"] as const;
-  const visibilityParam = (formData.get("visibility") as string | null)?.trim() ?? "public";
-  const visibility = VALID_VISIBILITY.includes(visibilityParam as typeof VALID_VISIBILITY[number])
-    ? visibilityParam
-    : "public";
-
+  const isPublicParam = formData.get("isPublic");
+  const isPublic =
+    typeof isPublicParam === "string"
+      ? isPublicParam === "true"
+      : Boolean(isPublicParam);
   const title = (formData.get("title") as string | null)?.trim() ?? "";
   const description =
     (formData.get("description") as string | null)?.trim() ?? "";
@@ -81,8 +80,7 @@ export async function POST(request: Request) {
   const publishedDate =
     (formData.get("publishedDate") as string | null)?.trim() || null;
 
-  // Only "public" visibility goes to the public bucket; everything else is private
-  const bucket = visibility === "public" ? PUBLIC_BUCKET : PRIVATE_BUCKET;
+  const bucket = isPublic ? PUBLIC_BUCKET : PRIVATE_BUCKET;
   const fileExt = file.name.split(".").pop();
   const fileName = `${uuidv4()}${fileExt ? `.${fileExt}` : ""}`;
   const filePath = fileName;
@@ -117,7 +115,6 @@ export async function POST(request: Request) {
           uploaded_at: new Date().toISOString(),
           roll_number: Number.isFinite(rollNumber) ? rollNumber : null,
           published_date: publishedDate,
-          visibility,
         },
       ])
       .select()

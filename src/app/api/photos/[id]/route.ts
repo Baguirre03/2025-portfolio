@@ -46,23 +46,19 @@ export async function PATCH(
   if (body.published_date === null || typeof body.published_date === "string")
     allowed.published_date = body.published_date || null;
 
-  const VALID_VISIBILITY = ["public", "private", "friends", "family"];
-  if (
-    typeof body.visibility === "string" &&
-    VALID_VISIBILITY.includes(body.visibility)
-  ) {
-    allowed.visibility = body.visibility;
-    allowed.bucket =
-      body.visibility === "public" ? "photos-public" : "photos-private";
-  }
+  const newBucket =
+    body.bucket === "photos-public" || body.bucket === "photos-private"
+      ? body.bucket
+      : null;
 
-  if (Object.keys(allowed).length === 0) {
+  if (Object.keys(allowed).length === 0 && !newBucket) {
     return NextResponse.json(
       { error: "No valid fields to update" },
       { status: 400 },
     );
   }
 
+  // Use service role to bypass RLS -- admin check is already done above
   const adminClient = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -76,46 +72,34 @@ export async function PATCH(
     },
   );
 
-  // If visibility changed, we may need to move the file between buckets
-  if (allowed.bucket) {
+  // If bucket changed, move the file between storage buckets
+  if (newBucket) {
     const { data: current } = await adminClient
       .from("photos")
       .select("filename, bucket")
       .eq("id", id)
       .single();
 
-    if (current && current.bucket !== allowed.bucket) {
-      const oldBucket = current.bucket as string;
-      const newBucket = allowed.bucket as string;
-      const filename = current.filename as string;
-
-      // Download from old bucket
+    if (current && current.bucket !== newBucket) {
       const { data: fileData } = await adminClient.storage
-        .from(oldBucket)
-        .download(filename);
+        .from(current.bucket)
+        .download(current.filename);
 
       if (fileData) {
-        // Upload to new bucket
         await adminClient.storage
           .from(newBucket)
-          .upload(filename, fileData, { upsert: true });
+          .upload(current.filename, fileData, { upsert: true });
 
-        // Delete from old bucket
-        await adminClient.storage.from(oldBucket).remove([filename]);
+        await adminClient.storage
+          .from(current.bucket)
+          .remove([current.filename]);
 
-        // Update public_url for the new bucket
-        if (newBucket === "photos-public") {
-          const { data: urlData } = adminClient.storage
-            .from(newBucket)
-            .getPublicUrl(filename);
-          allowed.public_url = urlData.publicUrl;
-        } else {
-          // For private bucket, store the path — signed URLs are generated at read time
-          const { data: urlData } = adminClient.storage
-            .from(newBucket)
-            .getPublicUrl(filename);
-          allowed.public_url = urlData.publicUrl;
-        }
+        const { data: urlData } = adminClient.storage
+          .from(newBucket)
+          .getPublicUrl(current.filename);
+
+        allowed.bucket = newBucket;
+        allowed.public_url = urlData.publicUrl;
       }
     }
   }

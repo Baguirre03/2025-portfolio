@@ -40,29 +40,6 @@ export async function GET(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
     const role = user?.app_metadata?.role as string | undefined;
-    const isAdmin = role === "admin";
-
-    // Determine which visibility levels this viewer can see
-    const allowedVisibility: string[] = ["public"];
-
-    if (isAdmin) {
-      // Admins see everything
-      allowedVisibility.push("private", "friends", "family");
-    } else {
-      // Check password-based access cookies
-      const accessCookie = cookieStore.get("photo_access")?.value;
-      if (accessCookie) {
-        const levels = accessCookie.split(",").filter(Boolean);
-        for (const lvl of levels) {
-          if (
-            (lvl === "friends" || lvl === "family") &&
-            !allowedVisibility.includes(lvl)
-          ) {
-            allowedVisibility.push(lvl);
-          }
-        }
-      }
-    }
 
     const from = cursor;
     const to = cursor + limit - 1;
@@ -70,7 +47,6 @@ export async function GET(request: Request) {
     const { data: photos, error } = await supabase
       .from("photos")
       .select("*")
-      .in("visibility", allowedVisibility)
       .order("uploaded_at", { ascending: false })
       .order("id", { ascending: false })
       .range(from, to);
@@ -81,10 +57,10 @@ export async function GET(request: Request) {
     const items = photos ?? [];
     const nextCursor = hasMore ? cursor + limit : null;
 
-    // For photos in the private bucket, generate short-lived signed URLs
+    // For private photos and admins, generate short-lived signed URLs
     const result = await Promise.all(
       items.map(async (p: Photo) => {
-        if (p.bucket === "photos-private") {
+        if (p.bucket === "photos-private" && role === "admin") {
           const { data: signed } = await supabase.storage
             .from("photos-private")
             .createSignedUrl(p.filename, 60 * 60); // 1 hour

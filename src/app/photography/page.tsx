@@ -2,8 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
-import { Pencil, Check, X, Loader2, Trash2, Lock, Unlock } from "lucide-react";
-import type { PhotoVisibility } from "@/lib/types";
+import { Pencil, Check, X, Loader2, Trash2 } from "lucide-react";
 
 type PhotosResponse = {
   photos: Photo[];
@@ -24,16 +23,11 @@ export default function PhotoGallery() {
     description: "",
     roll_number: "",
     published_date: "",
-    visibility: "public" as PhotoVisibility,
+    bucket: "photos-public",
   });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [accessLevels, setAccessLevels] = useState<string[]>([]);
-  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
-  const [accessPassword, setAccessPassword] = useState("");
-  const [accessError, setAccessError] = useState("");
-  const [accessLoading, setAccessLoading] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Calculate how many photos to load based on viewport
@@ -64,13 +58,6 @@ export default function PhotoGallery() {
       .then((res) => res.json())
       .then((data) => {
         if (data.isAdmin) setIsAdmin(true);
-      })
-      .catch(() => {});
-
-    fetch("/api/photo-access")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.levels) setAccessLevels(data.levels);
       })
       .catch(() => {});
   }, []);
@@ -185,7 +172,7 @@ export default function PhotoGallery() {
           ? String(selectedPhoto.roll_number)
           : "",
       published_date: selectedPhoto.published_date || "",
-      visibility: selectedPhoto.visibility || "public",
+      bucket: selectedPhoto.bucket || "photos-public",
     });
     setEditing(true);
   }, [selectedPhoto]);
@@ -205,7 +192,7 @@ export default function PhotoGallery() {
           ? parseInt(editData.roll_number, 10)
           : null,
         published_date: editData.published_date || null,
-        visibility: editData.visibility,
+        bucket: editData.bucket,
       };
       const res = await fetch(`/api/photos/${selectedPhoto.id}`, {
         method: "PATCH",
@@ -226,46 +213,6 @@ export default function PhotoGallery() {
       setSaving(false);
     }
   }, [selectedPhoto, editData]);
-
-  const submitAccessPassword = useCallback(async () => {
-    if (!accessPassword.trim()) return;
-    setAccessLoading(true);
-    setAccessError("");
-    try {
-      const res = await fetch("/api/photo-access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: accessPassword.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setAccessError(data.error || "Incorrect password");
-        return;
-      }
-      setAccessLevels(data.levels);
-      setAccessPassword("");
-      setShowPasswordPrompt(false);
-      // Reload photos with new access
-      setPhotos([]);
-      setNextCursor(null);
-      const limit = calculatePhotosToLoad();
-      await loadPhotos(undefined, limit);
-    } catch {
-      setAccessError("Something went wrong");
-    } finally {
-      setAccessLoading(false);
-    }
-  }, [accessPassword, calculatePhotosToLoad, loadPhotos]);
-
-  const clearAccess = useCallback(async () => {
-    await fetch("/api/photo-access", { method: "DELETE" });
-    setAccessLevels([]);
-    // Reload photos (now only public)
-    setPhotos([]);
-    setNextCursor(null);
-    const limit = calculatePhotosToLoad();
-    await loadPhotos(undefined, limit);
-  }, [calculatePhotosToLoad, loadPhotos]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedPhoto) return;
@@ -318,80 +265,6 @@ export default function PhotoGallery() {
       {error && (
         <div className="mb-4 text-sm text-red-500" role="alert">
           {error}
-        </div>
-      )}
-
-      {!isAdmin && (
-        <div className="mb-4 flex items-center gap-3 flex-wrap">
-          {accessLevels.length > 0 ? (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Unlock className="w-4 h-4" />
-              <span>
-                Viewing:{" "}
-                {accessLevels
-                  .map((l) => l.charAt(0).toUpperCase() + l.slice(1))
-                  .join(", ")}{" "}
-                photos
-              </span>
-              <button
-                onClick={clearAccess}
-                className="text-xs text-red-400 hover:text-red-300 underline ml-1"
-              >
-                Lock
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowPasswordPrompt(true)}
-              className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-200 transition-colors"
-            >
-              <Lock className="w-4 h-4" />
-              Enter access code
-            </button>
-          )}
-
-          {showPasswordPrompt && (
-            <div className="flex items-center gap-2">
-              <input
-                type="password"
-                value={accessPassword}
-                onChange={(e) => {
-                  setAccessPassword(e.target.value);
-                  setAccessError("");
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submitAccessPassword();
-                }}
-                placeholder="Password"
-                autoFocus
-                className="px-2 py-1 rounded bg-white/10 border border-white/20 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-40"
-              />
-              <button
-                onClick={submitAccessPassword}
-                disabled={accessLoading}
-                className="px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm disabled:opacity-50"
-              >
-                {accessLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  "Unlock"
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setShowPasswordPrompt(false);
-                  setAccessPassword("");
-                  setAccessError("");
-                }}
-                className="p-1 rounded hover:bg-white/10 text-gray-400"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-              {accessError && (
-                <span className="text-xs text-red-400">{accessError}</span>
-              )}
-            </div>
-          )}
         </div>
       )}
 
@@ -503,27 +376,17 @@ export default function PhotoGallery() {
                       className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <select
-                      value={editData.visibility}
+                      value={editData.bucket}
                       onChange={(e) =>
                         setEditData((d) => ({
                           ...d,
-                          visibility: e.target.value as PhotoVisibility,
+                          bucket: e.target.value,
                         }))
                       }
                       className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="public" className="text-black">
-                        Public
-                      </option>
-                      <option value="friends" className="text-black">
-                        Friends
-                      </option>
-                      <option value="family" className="text-black">
-                        Family
-                      </option>
-                      <option value="private" className="text-black">
-                        Private
-                      </option>
+                      <option value="photos-public" className="text-black">Public</option>
+                      <option value="photos-private" className="text-black">Private</option>
                     </select>
                   </div>
                   <div className="flex items-center justify-center gap-2 pt-1">
