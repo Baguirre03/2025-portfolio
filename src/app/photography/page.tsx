@@ -111,11 +111,14 @@ export default function PhotoGallery() {
     }
 
     const data: PhotosResponse = await res.json();
-    setPhotos((prev) =>
-      typeof cursor === "number" && cursor > 0
-        ? [...prev, ...data.photos]
-        : data.photos,
-    );
+    setPhotos((prev) => {
+      if (typeof cursor === "number" && cursor > 0) {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newPhotos = data.photos.filter((p) => !existingIds.has(p.id));
+        return [...prev, ...newPhotos];
+      }
+      return data.photos;
+    });
     setNextCursor(data.nextCursor);
   }, []);
 
@@ -385,8 +388,12 @@ export default function PhotoGallery() {
                       }
                       className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="photos-public" className="text-black">Public</option>
-                      <option value="photos-private" className="text-black">Private</option>
+                      <option value="photos-public" className="text-black">
+                        Public
+                      </option>
+                      <option value="photos-private" className="text-black">
+                        Private
+                      </option>
                     </select>
                   </div>
                   <div className="flex items-center justify-center gap-2 pt-1">
