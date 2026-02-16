@@ -10,4 +10,5 @@ export type Photo = {
   uploaded_at: string;
   roll_number: number | null;
   published_date: string | null;
+  tags: string[];
 };

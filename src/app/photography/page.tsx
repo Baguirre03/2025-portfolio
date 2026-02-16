@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
-import { Pencil, Check, X, Loader2, Trash2 } from "lucide-react";
+import { Pencil, Check, X, Loader2, Trash2, Tag } from "lucide-react";
 
 type PhotosResponse = {
   photos: Photo[];
@@ -24,10 +24,14 @@ export default function PhotoGallery() {
     roll_number: "",
     published_date: "",
     bucket: "photos-public",
+    tags: [] as string[],
+    tagInput: "",
   });
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [showTagFilter, setShowTagFilter] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Calculate how many photos to load based on viewport
@@ -176,6 +180,8 @@ export default function PhotoGallery() {
           : "",
       published_date: selectedPhoto.published_date || "",
       bucket: selectedPhoto.bucket || "photos-public",
+      tags: selectedPhoto.tags ?? [],
+      tagInput: "",
     });
     setEditing(true);
   }, [selectedPhoto]);
@@ -196,6 +202,7 @@ export default function PhotoGallery() {
           : null,
         published_date: editData.published_date || null,
         bucket: editData.bucket,
+        tags: editData.tags,
       };
       const res = await fetch(`/api/photos/${selectedPhoto.id}`, {
         method: "PATCH",
@@ -257,6 +264,15 @@ export default function PhotoGallery() {
     };
   }, [nextCursor, loadingMore, handleLoadMore]);
 
+  // Collect all unique tags from loaded photos
+  const allTags = Array.from(
+    new Set(photos.flatMap((p) => p.tags ?? [])),
+  ).sort();
+
+  const filteredPhotos = activeTag
+    ? photos.filter((p) => p.tags?.includes(activeTag))
+    : photos;
+
   if (loading) return <div>Loading photos...</div>;
 
   if (error && photos.length === 0) {
@@ -272,7 +288,7 @@ export default function PhotoGallery() {
       )}
 
       <div className="photo-gallery grid grid-cols-2 md:grid-cols-5 gap-2">
-        {photos.map((photo, index) => (
+        {filteredPhotos.map((photo, index) => (
           <button
             key={photo.id ?? index}
             type="button"
@@ -287,7 +303,6 @@ export default function PhotoGallery() {
               sizes="(max-width: 768px) 50vw, 20vw"
               loading={index < 18 ? "eager" : "lazy"}
               priority={index < 6}
-              // unoptimized={photo.bucket === "photos-private"}
             />
           </button>
         ))}
@@ -314,8 +329,8 @@ export default function PhotoGallery() {
             setConfirmDelete(false);
           }}
         >
-          <div className="relative w-full max-w-5xl">
-            <div className="relative w-full h-[60vh] md:h-[70vh] bg-transparent rounded-lg overflow-hidden">
+          <div className="relative w-full max-w-5xl max-h-full overflow-y-auto">
+            <div className={`relative w-full bg-transparent rounded-lg overflow-hidden ${editing ? "h-[35vh] md:h-[45vh]" : "h-[60vh] md:h-[70vh]"}`}>
               <Image
                 src={selectedPhoto.public_url}
                 alt={selectedPhoto.title || "Selected photo"}
@@ -327,11 +342,11 @@ export default function PhotoGallery() {
               />
             </div>
             <div
-              className="mt-4 text-center text-white"
+              className={`${editing ? "mt-2" : "mt-4"} text-center text-white`}
               onClick={(e) => e.stopPropagation()}
             >
               {editing ? (
-                <div className="max-w-md mx-auto space-y-3">
+                <div className="max-w-md mx-auto space-y-2">
                   <input
                     type="text"
                     value={editData.title}
@@ -395,6 +410,57 @@ export default function PhotoGallery() {
                         Private
                       </option>
                     </select>
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {editData.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 border border-white/20 text-xs text-gray-200"
+                        >
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditData((d) => ({
+                                ...d,
+                                tags: d.tags.filter((t) => t !== tag),
+                              }))
+                            }
+                            className="hover:text-red-400 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      value={editData.tagInput}
+                      onChange={(e) =>
+                        setEditData((d) => ({ ...d, tagInput: e.target.value }))
+                      }
+                      onKeyDown={(e) => {
+                        if (
+                          (e.key === "Enter" || e.key === ",") &&
+                          editData.tagInput.trim()
+                        ) {
+                          e.preventDefault();
+                          const newTag = editData.tagInput.trim().toLowerCase();
+                          if (!editData.tags.includes(newTag)) {
+                            setEditData((d) => ({
+                              ...d,
+                              tags: [...d.tags, newTag],
+                              tagInput: "",
+                            }));
+                          } else {
+                            setEditData((d) => ({ ...d, tagInput: "" }));
+                          }
+                        }
+                      }}
+                      placeholder="Add tag (enter or comma)"
+                      className="w-full px-3 py-1.5 rounded bg-white/10 border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
                   <div className="flex items-center justify-center gap-2 pt-1">
                     <button
@@ -495,12 +561,86 @@ export default function PhotoGallery() {
                           </span>
                         )}
                       </div>
+                      {selectedPhoto.tags?.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+                          {selectedPhoto.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-gray-300"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
                 </>
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Tag filter — desktop only, bottom-right */}
+      {allTags.length > 0 && !selectedPhoto && (
+        <div className="hidden md:block fixed bottom-6 right-6 z-40">
+          {showTagFilter ? (
+            <div className="bg-neutral-900/90 backdrop-blur-sm border border-neutral-700 rounded-xl p-3 shadow-lg max-w-xs">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
+                  Filter by tag
+                </span>
+                <button
+                  onClick={() => setShowTagFilter(false)}
+                  className="p-0.5 rounded hover:bg-neutral-700 text-neutral-500 hover:text-neutral-300 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => setActiveTag(null)}
+                  className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                    activeTag === null
+                      ? "bg-white text-black"
+                      : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                  }`}
+                >
+                  All
+                </button>
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() =>
+                      setActiveTag((prev) => (prev === tag ? null : tag))
+                    }
+                    className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                      activeTag === tag
+                        ? "bg-white text-black"
+                        : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowTagFilter(true)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-lg transition-colors ${
+                activeTag
+                  ? "bg-white text-black"
+                  : "bg-neutral-900/90 backdrop-blur-sm border border-neutral-700 text-neutral-300 hover:text-white"
+              }`}
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span className="text-sm">
+                {activeTag || "Tags"}
+              </span>
+            </button>
+          )}
         </div>
       )}
     </>

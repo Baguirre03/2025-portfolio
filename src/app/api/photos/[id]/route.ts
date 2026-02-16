@@ -45,6 +45,10 @@ export async function PATCH(
     allowed.roll_number = body.roll_number;
   if (body.published_date === null || typeof body.published_date === "string")
     allowed.published_date = body.published_date || null;
+  if (Array.isArray(body.tags))
+    allowed.tags = body.tags.filter(
+      (t: unknown) => typeof t === "string" && t.trim().length > 0,
+    ).map((t: string) => t.trim().toLowerCase());
 
   const newBucket =
     body.bucket === "photos-public" || body.bucket === "photos-private"
