@@ -66,44 +66,6 @@ export default function PhotoGallery() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (!selectedPhoto) return;
-
-      if (e.key === "Escape") {
-        setSelectedPhoto(null);
-        setEditing(false);
-        setConfirmDelete(false);
-        return;
-      }
-
-      if (e.key === "e" && !editing && isAdmin) {
-        e.preventDefault();
-        startEditing();
-        return;
-      }
-
-      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-        e.preventDefault();
-        const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
-        if (currentIndex === -1 || photos.length === 0) return;
-
-        const nextIndex =
-          e.key === "ArrowRight"
-            ? (currentIndex + 1) % photos.length
-            : (currentIndex - 1 + photos.length) % photos.length;
-
-        setSelectedPhoto(photos[nextIndex]);
-      }
-    };
-    if (selectedPhoto) {
-      window.addEventListener("keydown", onKeyDown);
-    }
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [selectedPhoto, photos]);
-
   const loadPhotos = useCallback(async (cursor?: number, limit?: number) => {
     const params = new URLSearchParams();
     if (typeof cursor === "number" && cursor > 0) {
@@ -191,6 +153,44 @@ export default function PhotoGallery() {
     });
     setEditing(true);
   }, [selectedPhoto]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!selectedPhoto) return;
+
+      if (e.key === "Escape") {
+        setSelectedPhoto(null);
+        setEditing(false);
+        setConfirmDelete(false);
+        return;
+      }
+
+      if (e.key === "e" && !editing && isAdmin) {
+        e.preventDefault();
+        startEditing();
+        return;
+      }
+
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
+        if (currentIndex === -1 || photos.length === 0) return;
+
+        const nextIndex =
+          e.key === "ArrowRight"
+            ? (currentIndex + 1) % photos.length
+            : (currentIndex - 1 + photos.length) % photos.length;
+
+        setSelectedPhoto(photos[nextIndex]);
+      }
+    };
+    if (selectedPhoto) {
+      window.addEventListener("keydown", onKeyDown);
+    }
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [selectedPhoto, photos, editing, isAdmin, startEditing]);
 
   const cancelEditing = useCallback(() => {
     setEditing(false);
@@ -600,7 +600,13 @@ export default function PhotoGallery() {
       {/* Tag filter — desktop only, bottom-right */}
       {allTags.length > 0 && !selectedPhoto && (
         <div className="hidden md:block fixed bottom-6 right-6 z-40">
-          {showTagFilter ? (
+          <div
+            className={`origin-bottom-right transition-all duration-300 ease-out ${
+              showTagFilter
+                ? "scale-100 opacity-100"
+                : "scale-95 opacity-0 pointer-events-none"
+            }`}
+          >
             <div className="bg-neutral-900/90 backdrop-blur-sm border border-neutral-700 rounded-xl p-3 shadow-lg max-w-xs">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-neutral-400 uppercase tracking-wider">
@@ -616,44 +622,51 @@ export default function PhotoGallery() {
               <div className="flex flex-wrap gap-1.5">
                 <button
                   onClick={() => setActiveTag(null)}
-                  className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                  className={`px-2.5 py-1 rounded-full text-xs transition-all duration-200 ${
                     activeTag === null
-                      ? "bg-white text-black"
+                      ? "bg-white text-black scale-105"
                       : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
                   }`}
                 >
                   All
                 </button>
-                {allTags.map((tag) => (
+                {allTags.map((tag, i) => (
                   <button
                     key={tag}
                     onClick={() =>
                       setActiveTag((prev) => (prev === tag ? null : tag))
                     }
-                    className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                    className={`px-2.5 py-1 rounded-full text-xs transition-all duration-200 ${
                       activeTag === tag
-                        ? "bg-white text-black"
+                        ? "bg-white text-black scale-105"
                         : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
                     }`}
+                    style={{
+                      transitionDelay: showTagFilter ? `${(i + 1) * 30}ms` : "0ms",
+                    }}
                   >
                     {tag}
                   </button>
                 ))}
               </div>
             </div>
-          ) : (
-            <button
-              onClick={() => setShowTagFilter(true)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-lg transition-colors ${
-                activeTag
-                  ? "bg-white text-black"
-                  : "bg-neutral-900/90 backdrop-blur-sm border border-neutral-700 text-neutral-300 hover:text-white"
-              }`}
-            >
-              <Tag className="w-3.5 h-3.5" />
-              <span className="text-sm">{activeTag || "Tags"}</span>
-            </button>
-          )}
+          </div>
+
+          <button
+            onClick={() => setShowTagFilter((v) => !v)}
+            className={`transition-all duration-300 ease-out flex items-center gap-2 px-3 py-2 rounded-full shadow-lg mt-2 ml-auto ${
+              showTagFilter
+                ? "scale-90 opacity-0 pointer-events-none"
+                : "scale-100 opacity-100"
+            } ${
+              activeTag
+                ? "bg-white text-black"
+                : "bg-neutral-900/90 backdrop-blur-sm border border-neutral-700 text-neutral-300 hover:text-white"
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5" />
+            <span className="text-sm">{activeTag || "Tags"}</span>
+          </button>
         </div>
       )}
     </>
