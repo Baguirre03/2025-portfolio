@@ -77,6 +77,12 @@ export default function PhotoGallery() {
         return;
       }
 
+      if (e.key === "e" && !editing && isAdmin) {
+        e.preventDefault();
+        startEditing();
+        return;
+      }
+
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
         e.preventDefault();
         const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
@@ -330,7 +336,9 @@ export default function PhotoGallery() {
           }}
         >
           <div className="relative w-full max-w-5xl max-h-full overflow-y-auto">
-            <div className={`relative w-full bg-transparent rounded-lg overflow-hidden ${editing ? "h-[35vh] md:h-[45vh]" : "h-[60vh] md:h-[70vh]"}`}>
+            <div
+              className={`relative w-full bg-transparent rounded-lg overflow-hidden ${editing ? "h-[35vh] md:h-[45vh]" : "h-[60vh] md:h-[70vh]"}`}
+            >
               <Image
                 src={selectedPhoto.public_url}
                 alt={selectedPhoto.title || "Selected photo"}
@@ -346,7 +354,13 @@ export default function PhotoGallery() {
               onClick={(e) => e.stopPropagation()}
             >
               {editing ? (
-                <div className="max-w-md mx-auto space-y-2">
+                <form
+                  className="max-w-md mx-auto space-y-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    saveEdits();
+                  }}
+                >
                   <input
                     type="text"
                     value={editData.title}
@@ -464,7 +478,7 @@ export default function PhotoGallery() {
                   </div>
                   <div className="flex items-center justify-center gap-2 pt-1">
                     <button
-                      onClick={saveEdits}
+                      type="submit"
                       disabled={saving}
                       className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm disabled:opacity-50"
                     >
@@ -476,6 +490,7 @@ export default function PhotoGallery() {
                       Save
                     </button>
                     <button
+                      type="button"
                       onClick={cancelEditing}
                       disabled={saving}
                       className="flex items-center gap-1 px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-sm"
@@ -484,7 +499,7 @@ export default function PhotoGallery() {
                       Cancel
                     </button>
                   </div>
-                </div>
+                </form>
               ) : (
                 <>
                   <div className="flex items-center justify-center gap-2">
@@ -636,9 +651,7 @@ export default function PhotoGallery() {
               }`}
             >
               <Tag className="w-3.5 h-3.5" />
-              <span className="text-sm">
-                {activeTag || "Tags"}
-              </span>
+              <span className="text-sm">{activeTag || "Tags"}</span>
             </button>
           )}
         </div>
