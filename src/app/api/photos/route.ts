@@ -70,13 +70,15 @@ export async function GET(request: Request) {
       })
     );
 
+    // Only cache publicly for anonymous users; admin responses include signed URLs
+    const cacheControl =
+      role === "admin"
+        ? "private, no-store, max-age=0"
+        : "public, s-maxage=60, stale-while-revalidate=300, max-age=60";
+
     return NextResponse.json(
       { photos: result, nextCursor },
-      {
-        headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-        },
-      }
+      { headers: { "Cache-Control": cacheControl } }
     );
   } catch (error) {
     console.error("Error fetching photos:", error);

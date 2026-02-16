@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { QueryProvider } from "@/components/query-provider";
 import { Analytics } from "@vercel/analytics/next";
 
 const spaceGrotesk = Space_Grotesk({
@@ -42,17 +43,19 @@ export default function RootLayout({
           src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"
           strategy="lazyOnload"
         />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Suspense fallback={null}>
-            <Navigation />
-            <main className="min-h-screen">{children}</main>
-          </Suspense>
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Suspense fallback={null}>
+              <Navigation />
+              <main className="min-h-screen">{children}</main>
+            </Suspense>
+          </ThemeProvider>
+        </QueryProvider>
         <Analytics></Analytics>
       </body>
     </html>

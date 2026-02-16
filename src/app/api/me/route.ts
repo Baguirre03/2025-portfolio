@@ -26,9 +26,23 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ isAdmin: false });
+    return NextResponse.json(
+      { isAdmin: false },
+      {
+        headers: {
+          "Cache-Control": "private, no-store",
+        },
+      }
+    );
   }
 
   const role = user.app_metadata?.role as string | undefined;
-  return NextResponse.json({ isAdmin: role === "admin" });
+  return NextResponse.json(
+    { isAdmin: role === "admin" },
+    {
+      headers: {
+        "Cache-Control": "private, no-store",
+      },
+    }
+  );
 }

@@ -1,22 +1,41 @@
 "use client";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import { Photo } from "@/lib/types";
 import { Pencil, Check, X, Loader2, Trash2, Tag } from "lucide-react";
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 
-type PhotosResponse = {
-  photos: Photo[];
-  nextCursor: number | null;
-};
+const PHOTOS_PAGE_SIZE = 24;
+
+async function fetchMe(): Promise<{ isAdmin: boolean }> {
+  const res = await fetch("/api/me");
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
+}
+
+async function fetchPhotos({
+  cursor = 0,
+  limit = PHOTOS_PAGE_SIZE,
+}: {
+  cursor?: number;
+  limit?: number;
+}) {
+  const params = new URLSearchParams();
+  params.set("cursor", String(cursor));
+  params.set("limit", String(limit));
+  const res = await fetch(`/api/photos?${params}`);
+  if (!res.ok) throw new Error("Failed to fetch photos");
+  return res.json() as Promise<{ photos: Photo[]; nextCursor: number | null }>;
+}
 
 export default function PhotoGallery() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState({
     title: "",
@@ -27,115 +46,120 @@ export default function PhotoGallery() {
     tags: [] as string[],
     tagInput: "",
   });
-  const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [showTagFilter, setShowTagFilter] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Calculate how many photos to load based on viewport
-  const calculatePhotosToLoad = useCallback(() => {
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
+  const { data: meData } = useQuery({
+    queryKey: ["me"],
+    queryFn: fetchMe,
+    staleTime: 5 * 60 * 1000,
+  });
+  const isAdmin = meData?.isAdmin ?? false;
 
-    // Determine columns based on breakpoint (md:grid-cols-5, default grid-cols-2)
-    const columns = viewportWidth >= 768 ? 5 : 2;
+  const {
+    data,
+    isLoading: loading,
+    isFetchingNextPage: loadingMore,
+    hasNextPage,
+    fetchNextPage,
+    error: photosError,
+  } = useInfiniteQuery({
+    queryKey: ["photos"],
+    queryFn: ({ pageParam }) =>
+      fetchPhotos({ cursor: pageParam, limit: PHOTOS_PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
 
-    // Estimate photo height (aspect-square + gap)
-    // Each photo is roughly viewportWidth / columns, plus gap
-    const gapSize = 8; // gap-2 = 0.5rem = 8px
-    const photoSize = (viewportWidth - (columns + 1) * gapSize) / columns;
+  const photos = useMemo(
+    () => data?.pages.flatMap((p) => p.photos) ?? [],
+    [data],
+  );
 
-    // Calculate rows that fit in viewport + 2 extra rows for smooth scrolling
-    const rowsThatFit = Math.ceil(viewportHeight / (photoSize + gapSize));
-    const bufferRows = 2;
-    const totalRows = rowsThatFit + bufferRows;
+  const saveEditsMutation = useMutation({
+    mutationFn: async ({
+      id,
+      body,
+    }: {
+      id: string;
+      body: {
+        title: string;
+        description: string;
+        roll_number: number | null;
+        published_date: string | null;
+        bucket: string;
+        tags: string[];
+      };
+    }) => {
+      const res = await fetch(`/api/photos/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      return res.json() as Promise<{ photo: Photo }>;
+    },
+    onSuccess: ({ photo: updated }) => {
+      queryClient.setQueryData(
+        ["photos"],
+        (
+          old:
+            | { pages: { photos: Photo[]; nextCursor: number | null }[] }
+            | undefined,
+        ) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              photos: page.photos.map((p) =>
+                p.id === updated.id ? updated : p,
+              ),
+            })),
+          };
+        },
+      );
+      setSelectedPhoto((prev) => (prev?.id === updated.id ? updated : prev));
+      setEditing(false);
+    },
+  });
 
-    // Total photos = rows × columns, minimum 12, maximum 50
-    const calculated = totalRows * columns;
-    return Math.min(Math.max(calculated, 12), 50);
-  }, []);
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/photos/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete");
+    },
+    onSuccess: (_, deletedId) => {
+      queryClient.setQueryData(
+        ["photos"],
+        (
+          old:
+            | { pages: { photos: Photo[]; nextCursor: number | null }[] }
+            | undefined,
+        ) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              photos: page.photos.filter((p) => p.id !== deletedId),
+            })),
+          };
+        },
+      );
+      setSelectedPhoto(null);
+      setConfirmDelete(false);
+      setEditing(false);
+    },
+  });
 
-  useEffect(() => {
-    fetch("/api/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.isAdmin) setIsAdmin(true);
-      })
-      .catch(() => {});
-  }, []);
-
-  const loadPhotos = useCallback(async (cursor?: number, limit?: number) => {
-    const params = new URLSearchParams();
-    if (typeof cursor === "number" && cursor > 0) {
-      params.set("cursor", cursor.toString());
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !loadingMore) {
+      fetchNextPage();
     }
-    if (limit) {
-      params.set("limit", limit.toString());
-    }
-
-    const url = `/api/photos${params.size ? `?${params.toString()}` : ""}`;
-    const res = await fetch(url);
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch photos: ${res.status}`);
-    }
-
-    const data: PhotosResponse = await res.json();
-    setPhotos((prev) => {
-      if (typeof cursor === "number" && cursor > 0) {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const newPhotos = data.photos.filter((p) => !existingIds.has(p.id));
-        return [...prev, ...newPhotos];
-      }
-      return data.photos;
-    });
-    setNextCursor(data.nextCursor);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchInitialPhotos() {
-      setLoading(true);
-      setError(null);
-      try {
-        const limit = calculatePhotosToLoad();
-        await loadPhotos(undefined, limit);
-      } catch (err) {
-        if (cancelled) return;
-        console.error("Error fetching photos:", err);
-        setError("Unable to load photos right now.");
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchInitialPhotos();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [loadPhotos, calculatePhotosToLoad]);
-
-  const handleLoadMore = useCallback(async () => {
-    if (nextCursor == null || loadingMore) return;
-
-    setLoadingMore(true);
-    setError(null);
-    try {
-      const limit = calculatePhotosToLoad();
-      await loadPhotos(nextCursor, limit);
-    } catch (err) {
-      console.error("Error fetching more photos:", err);
-      setError("Unable to load more photos. Please try again.");
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [loadPhotos, nextCursor, loadingMore, calculatePhotosToLoad]);
+  }, [hasNextPage, loadingMore, fetchNextPage]);
 
   const startEditing = useCallback(() => {
     if (!selectedPhoto) return;
@@ -196,11 +220,11 @@ export default function PhotoGallery() {
     setEditing(false);
   }, []);
 
-  const saveEdits = useCallback(async () => {
+  const saveEdits = useCallback(() => {
     if (!selectedPhoto) return;
-    setSaving(true);
-    try {
-      const body = {
+    saveEditsMutation.mutate({
+      id: selectedPhoto.id,
+      body: {
         title: editData.title,
         description: editData.description,
         roll_number: editData.roll_number
@@ -209,66 +233,32 @@ export default function PhotoGallery() {
         published_date: editData.published_date || null,
         bucket: editData.bucket,
         tags: editData.tags,
-      };
-      const res = await fetch(`/api/photos/${selectedPhoto.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error("Failed to save");
-      const { photo: updated } = await res.json();
-      // Update local state
-      setPhotos((prev) =>
-        prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)),
-      );
-      setSelectedPhoto((prev) => (prev ? { ...prev, ...updated } : prev));
-      setEditing(false);
-    } catch (err) {
-      console.error("Error saving photo:", err);
-    } finally {
-      setSaving(false);
-    }
-  }, [selectedPhoto, editData]);
+      },
+    });
+  }, [selectedPhoto, editData, saveEditsMutation]);
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = useCallback(() => {
     if (!selectedPhoto) return;
-    setDeleting(true);
-    try {
-      const res = await fetch(`/api/photos/${selectedPhoto.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Failed to delete");
-      setPhotos((prev) => prev.filter((p) => p.id !== selectedPhoto.id));
-      setSelectedPhoto(null);
-      setConfirmDelete(false);
-      setEditing(false);
-    } catch (err) {
-      console.error("Error deleting photo:", err);
-    } finally {
-      setDeleting(false);
-    }
-  }, [selectedPhoto]);
+    deletePhotoMutation.mutate(selectedPhoto.id);
+  }, [selectedPhoto, deletePhotoMutation]);
 
   // Infinite scroll: observe when the load more trigger enters viewport
   useEffect(() => {
-    if (!loadMoreRef.current || nextCursor == null) return;
+    if (!loadMoreRef.current || !hasNextPage) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && !loadingMore) {
+        if (entry?.isIntersecting && !loadingMore) {
           handleLoadMore();
         }
       },
-      { threshold: 0.1, rootMargin: "100px" }, // Trigger 100px before visible
+      { threshold: 0.1, rootMargin: "100px" },
     );
 
     observer.observe(loadMoreRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [nextCursor, loadingMore, handleLoadMore]);
+    return () => observer.disconnect();
+  }, [hasNextPage, loadingMore, handleLoadMore]);
 
   // Collect all unique tags from loaded photos
   const allTags = Array.from(
@@ -278,6 +268,8 @@ export default function PhotoGallery() {
   const filteredPhotos = activeTag
     ? photos.filter((p) => p.tags?.includes(activeTag))
     : photos;
+
+  const error = photosError?.message ?? null;
 
   if (loading) return <div>Loading photos...</div>;
 
@@ -315,7 +307,7 @@ export default function PhotoGallery() {
       </div>
 
       {/* Infinite scroll trigger */}
-      {nextCursor != null && (
+      {hasNextPage && (
         <div ref={loadMoreRef} className="mt-6 flex justify-center py-4">
           {loadingMore && (
             <div className="text-sm text-gray-500">Loading more photos...</div>
@@ -479,10 +471,10 @@ export default function PhotoGallery() {
                   <div className="flex items-center justify-center gap-2 pt-1">
                     <button
                       type="submit"
-                      disabled={saving}
+                      disabled={saveEditsMutation.isPending}
                       className="flex items-center gap-1 px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-sm disabled:opacity-50"
                     >
-                      {saving ? (
+                      {saveEditsMutation.isPending ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       ) : (
                         <Check className="w-3.5 h-3.5" />
@@ -492,7 +484,7 @@ export default function PhotoGallery() {
                     <button
                       type="button"
                       onClick={cancelEditing}
-                      disabled={saving}
+                      disabled={saveEditsMutation.isPending}
                       className="flex items-center gap-1 px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-sm"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -534,10 +526,10 @@ export default function PhotoGallery() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={handleDelete}
-                          disabled={deleting}
+                          disabled={deletePhotoMutation.isPending}
                           className="flex items-center gap-1 px-3 py-1 rounded bg-red-600 hover:bg-red-700 text-white text-sm disabled:opacity-50"
                         >
-                          {deleting ? (
+                          {deletePhotoMutation.isPending ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             <Trash2 className="w-3.5 h-3.5" />
@@ -546,7 +538,7 @@ export default function PhotoGallery() {
                         </button>
                         <button
                           onClick={() => setConfirmDelete(false)}
-                          disabled={deleting}
+                          disabled={deletePhotoMutation.isPending}
                           className="flex items-center gap-1 px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white text-sm"
                         >
                           Cancel
@@ -642,7 +634,9 @@ export default function PhotoGallery() {
                         : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
                     }`}
                     style={{
-                      transitionDelay: showTagFilter ? `${(i + 1) * 30}ms` : "0ms",
+                      transitionDelay: showTagFilter
+                        ? `${(i + 1) * 30}ms`
+                        : "0ms",
                     }}
                   >
                     {tag}
