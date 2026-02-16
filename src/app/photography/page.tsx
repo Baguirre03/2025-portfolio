@@ -33,6 +33,12 @@ async function fetchPhotos({
   return res.json() as Promise<{ photos: Photo[]; nextCursor: number | null }>;
 }
 
+async function fetchAllTags(): Promise<{ tags: string[] }> {
+  const res = await fetch("/api/photos/tags");
+  if (!res.ok) throw new Error("Failed to fetch tags");
+  return res.json();
+}
+
 export default function PhotoGallery() {
   const queryClient = useQueryClient();
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -57,6 +63,13 @@ export default function PhotoGallery() {
     staleTime: 5 * 60 * 1000,
   });
   const isAdmin = meData?.isAdmin ?? false;
+
+  const { data: tagsData } = useQuery({
+    queryKey: ["photos", "tags"],
+    queryFn: fetchAllTags,
+    staleTime: 5 * 60 * 1000,
+  });
+  const allTags = tagsData?.tags ?? [];
 
   const {
     data,
@@ -259,11 +272,6 @@ export default function PhotoGallery() {
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
   }, [hasNextPage, loadingMore, handleLoadMore]);
-
-  // Collect all unique tags from loaded photos
-  const allTags = Array.from(
-    new Set(photos.flatMap((p) => p.tags ?? [])),
-  ).sort();
 
   const filteredPhotos = activeTag
     ? photos.filter((p) => p.tags?.includes(activeTag))
