@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import heic2any from "heic2any";
 
 interface HeicImageProps {
   src: string;
@@ -33,6 +32,7 @@ export function HeicImage({
 
     async function convert() {
       try {
+        const heic2any = (await import("heic2any")).default;
         const res = await fetch(src);
         const blob = await res.blob();
         const converted = await heic2any({
