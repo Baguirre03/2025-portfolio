@@ -37,6 +37,23 @@ With the route planned it was time to leave on January 15th! Off to Madrid I go!
 ### Sights:
 ### Favorites:
 ### Photos:
+./images/traveling_to_spain_and_portugal/IMG_8275.heic
+./images/traveling_to_spain_and_portugal/IMG_8276.heic
+./images/traveling_to_spain_and_portugal/IMG_8288.heic
+./images/traveling_to_spain_and_portugal/IMG_8291.heic
+./images/traveling_to_spain_and_portugal/IMG_8297.heic
+./images/traveling_to_spain_and_portugal/IMG_8299.heic
+./images/traveling_to_spain_and_portugal/IMG_8312.heic
+./images/traveling_to_spain_and_portugal/IMG_8317.heic
+./images/traveling_to_spain_and_portugal/IMG_8339.heic
+./images/traveling_to_spain_and_portugal/IMG_8353.heic
+./images/traveling_to_spain_and_portugal/IMG_8358.heic
+./images/traveling_to_spain_and_portugal/IMG_8361.heic
+./images/traveling_to_spain_and_portugal/IMG_8363.heic
+./images/traveling_to_spain_and_portugal/IMG_8368.heic
+./images/traveling_to_spain_and_portugal/IMG_8376.heic
+./images/traveling_to_spain_and_portugal/IMG_8380.heic
+
 ## Seville
 --- 
 ### Sights:
