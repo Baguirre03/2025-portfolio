@@ -29,5 +29,22 @@ Madrid -> Seville -> Lisbon -> Porto. Four amazing cities within 16 days.
 ### Transportation
 As you can see there needs to be a way to get to each city, especially getting from Spain to Portugal (as I hinted above). Luckily Europe has an extensive train network which makes everything so much easier.
 
-**NYC -> ✈️ -> Madrid -> 🚄 -> Seville -> ✈️ -> Lisbon -> 🚄 -> Porto -> ✈️ -> Madrid -> ✈️ -> NYC**  
+**NYC ✈️ Madrid 🚄 Seville ✈️ Lisbon 🚄 Porto ✈️ Madrid ✈️ NYC**  
 
+With the route planned it was time to leave on January 15th! Off to Madrid I go!
+## Madrid
+--- 
+### Sights:
+### Favorites:
+## Seville
+--- 
+### Sights:
+### Favorites:
+## Seville
+--- 
+### Sights:
+### Favorites:
+## Porto
+--- 
+### Sights:
+### Favorites
