@@ -14,6 +14,7 @@ import {
   Code2,
   Quote,
 } from "lucide-react";
+import { Carousel } from "@/components/carousel";
 
 const CALLOUT_MATCH =
   /^\[!(Note|Tip|Warning|Important|Caution|Example|Quote)\]\s*(.*)$/i;
@@ -166,6 +167,22 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             const match = /language-(\w+)/.exec(className || "");
             const language = match ? match[1] : "";
             const isCodeBlock = String(children).includes("\n") || className;
+
+            if (language === "carousel") {
+              const lines = String(children)
+                .trim()
+                .split("\n")
+                .map((s) => s.trim())
+                .filter(Boolean);
+              const slides = lines
+                .map((line) => {
+                  const [path, caption] = line.split("|").map((s) => s.trim());
+                  const src = normalizeBlogImageSrc(path);
+                  return { src, caption: caption || undefined };
+                })
+                .filter((s) => s.src);
+              return <Carousel slides={slides} />;
+            }
 
             // If it's a code block with a language, use syntax highlighter
             if (language) {
