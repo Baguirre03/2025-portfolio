@@ -88,6 +88,6 @@ fn main() {
 ### Carousel
 ```carousel
 ./images/Blog/AAA028.jpg
-.images/Blog/AAA031.jpg
-.images/Blog/AAA031%201.jpg
+./images/Blog/AAA031.jpg
+![test](./images/Blog/AAA031%201.jpg)
 ```
