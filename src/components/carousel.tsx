@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { HeicImage } from "@/components/heic-image";
 import { cn } from "@/lib/utils";
 
 export interface CarouselSlide {
@@ -36,7 +36,7 @@ export function Carousel({ slides, className }: CarouselProps) {
       aria-label="Image carousel"
     >
       <div className="relative aspect-video w-full bg-muted">
-        <Image
+        <HeicImage
           src={current.src}
           alt={current.caption ?? `Slide ${index + 1}`}
           fill

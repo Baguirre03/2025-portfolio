@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { HeicImage } from "@/components/heic-image";
 import React, { ReactNode, isValidElement } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -132,15 +133,24 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             );
             if (!resolved) return null;
             const altText = typeof alt === "string" ? alt : "";
+            const isHeic = resolved.toLowerCase().endsWith(".heic");
             return (
               <span className="block my-6">
-                <Image
-                  src={resolved}
-                  alt={altText}
-                  width={800}
-                  height={500}
-                  className="rounded-lg w-full h-auto object-contain"
-                />
+                {isHeic ? (
+                  <HeicImage
+                    src={resolved}
+                    alt={altText}
+                    className="rounded-lg w-full h-auto object-contain"
+                  />
+                ) : (
+                  <Image
+                    src={resolved}
+                    alt={altText}
+                    width={800}
+                    height={500}
+                    className="rounded-lg w-full h-auto object-contain"
+                  />
+                )}
               </span>
             );
           },
