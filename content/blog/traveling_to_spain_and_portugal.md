@@ -36,15 +36,20 @@ With the route planned it was time to leave on January 15th! Off to Madrid I go!
 --- 
 ### Sights:
 ### Favorites:
+### Photos:
 ## Seville
 --- 
 ### Sights:
 ### Favorites:
+### Photos:
 ## Seville
 --- 
 ### Sights:
 ### Favorites:
+### Photos:
 ## Porto
 --- 
 ### Sights:
 ### Favorites
+### Photos:
+## Wrapping it up
