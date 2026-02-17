@@ -91,3 +91,9 @@ fn main() {
 ./images/Blog/AAA031.jpg
 ![test](./images/Blog/AAA031%201.jpg)
 ```
+### Carousel Test 2
+```carousel
+![test](./images/Blog/AAA028.jpg)
+![test](./images/Blog/AAA031.jpg)
+![test](./images/Blog/AAA031%201.jpg)
+```
