@@ -22,6 +22,12 @@ async function fetchMe(): Promise<{ isAdmin: boolean }> {
   return res.json();
 }
 
+async function fetchAllTags(): Promise<{ tags: string[] }> {
+  const res = await fetch("/api/photos/tags");
+  if (!res.ok) throw new Error("Failed to fetch tags");
+  return res.json();
+}
+
 async function fetchPhotos({
   cursor = 0,
   limit = 100,
@@ -52,6 +58,14 @@ export default function EditPhotosPage() {
     staleTime: 5 * 60 * 1000,
   });
   const isAdmin = meData?.isAdmin ?? false;
+
+  const { data: tagsData } = useQuery({
+    queryKey: ["photos", "tags"],
+    queryFn: fetchAllTags,
+    staleTime: 5 * 60 * 1000,
+    enabled: isAdmin,
+  });
+  const allTags = tagsData?.tags ?? [];
 
   const {
     data,
@@ -117,6 +131,14 @@ export default function EditPhotosPage() {
     );
     setTagInput("");
   }, [tagInput]);
+
+  const addExistingTag = useCallback((tag: string) => {
+    const trimmed = tag.trim().toLowerCase();
+    if (!trimmed) return;
+    setTagsToAdd((prev) =>
+      prev.includes(trimmed) ? prev : [...prev, trimmed].sort(),
+    );
+  }, []);
 
   const removeTag = useCallback((tag: string) => {
     setTagsToAdd((prev) => prev.filter((t) => t !== tag));
@@ -267,6 +289,27 @@ export default function EditPhotosPage() {
             </div>
           )}
         </div>
+
+        {allTags.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Current tags
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => addExistingTag(tag)}
+                  className="px-2.5 py-1 rounded-full text-xs bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+                  title="Click to add"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center gap-3">
           <button
